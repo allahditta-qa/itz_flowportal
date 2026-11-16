@@ -12,7 +12,7 @@ export default defineConfig({
   reporter: [
     ['list'],                                                   // terminal
     ['html', { open: 'never' }],                                // online report (playwright-report/, server se khulti hai)
-    ['./reporters/offline-report.ts', { outputFile: 'reports/offline-report.html' }], // offline single-file report (screenshots embedded)
+    ['./reporters/offline-report.ts', { outputDir: 'reports' }], // har module/sub-module ki alag offline report (reports/<module>/<sub> test report.html) + reports/index.html
   ],
   use: {
     baseURL: ENV.baseURL,        // page.goto('/login') = BASE_URL + /login
