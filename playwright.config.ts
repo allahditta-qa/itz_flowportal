@@ -4,7 +4,8 @@ import { ENV } from './config/env';
 
 export default defineConfig({
   testDir: './tests',            // tests isi folder me dhoondhe jayen
-  timeout: 30_000,               // ek test max 30 sec
+  timeout: 60_000,               // ek test max 60 sec (app slow ho sakti hai)
+  workers: 2,                    // zyada parallel logins se server slow ho jata hai
   expect: { timeout: 7_000 },    // assertion max 7 sec wait kare
   fullyParallel: true,           // tests saath saath chalen
   retries: 1,                    // fail ho to 1 baar dobara try

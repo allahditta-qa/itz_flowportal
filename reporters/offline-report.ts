@@ -3,6 +3,7 @@
 import type { FullResult, Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
 
 interface Row {
   title: string;
@@ -22,7 +23,11 @@ export default class OfflineReporter implements Reporter {
   private start = Date.now();
   private outFile: string;
 
-  constructor(options: { outputFile?: string } = {}) {
+  private autoOpen: boolean;
+
+  constructor(options: { outputFile?: string; open?: boolean } = {}) {
+    // Run ke baad report browser mein khud khule (CI par ya OFFLINE_REPORT_OPEN=0 par nahi)
+    this.autoOpen = (options.open ?? true) && !process.env.CI && process.env.OFFLINE_REPORT_OPEN !== '0';
     this.outFile = path.resolve(options.outputFile ?? 'reports/offline-report.html');
   }
 
@@ -49,6 +54,7 @@ export default class OfflineReporter implements Reporter {
 
   onEnd(result: FullResult): void {
     const rows = [...this.rows.values()].sort((a, b) => a.title.localeCompare(b.title));
+    if (rows.length === 0) return; // koi test chala hi nahi (e.g. --list): purani report na bigarein
     const count = (s: string) => rows.filter((r) => r.status === s).length;
     const passed = count('passed');
     const failed = rows.filter((r) => r.status === 'failed' || r.status === 'timedOut').length;

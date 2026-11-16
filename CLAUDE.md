@@ -36,12 +36,16 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 ## Reports (kam effort rakhna, user ki preference)
 - Har test ka screenshot report mein aata hai (`screenshot: 'on'`).
 - Online: `npm run report` (playwright-report/). Offline: `reports/offline-report.html` (single file, screenshots embedded, double-click se khulti hai), har `npm test` par ban jati hai.
+- Har run ke baad report khud banti hai (config reporters). `--reporter=...` flag mat do warna report nahi banti. Offline report browser mein auto-open hoti hai (`OFFLINE_REPORT_OPEN=0` se band; background runs mein band rakho).
 - Reporting par zyada time/effort mat lagao; custom reporter `reporters/offline-report.ts` jaisa hai waisa hi rehne do jab tak kuch toot na jaye.
 
 ## Status (2026-11-16)
 - 22/22 tests pass (setup, auth, workspace, project, my-work). Sab read-only: app live hai, create/delete/ClickUp sync kabhi nahi.
 - Credentials `.env` mein set hain; login ke liye `fill()` nahi, `pressSequentially` (GUIDELINES.md).
 - Next: user se aur modules/flows confirm karna (ticket view, sprint detail, search), `.auth/` aur `reports/` gitignored.
+
+## Lockout warning
+Login page galat attempts par 15 min ke liye lock kar deta hai (HTTP 429). Default login suite mein max 3 galat attempts hain; extra security tests sirf `$env:RUN_LOCKOUT_TESTS=1` se chalao, aur wo bhi kam. Parallel workers 2 se zyada mat karo.
 
 ## Learnings file
 `GUIDELINES.md` project ka living notebook hai. Jab bhi koi nayi cheez seekhen (app behavior, locator trick, bug, gotcha, user ka jawab), usi waqt `GUIDELINES.md` mein entry add karo (Date | Area | Learning | Action). Naya test likhne se pehle us file ki pitfalls checklist dekho.

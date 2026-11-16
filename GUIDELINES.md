@@ -10,6 +10,10 @@ Format: har entry mein **Date | Area | Learning | Kya karna hai**. Naye entries 
 
 | Date | Area | Learning | Action / Rule |
 |------|------|----------|---------------|
+| 2026-11-16 | Login lockout | Galat logins ki limit hai: "Too many failed attempts. 15 minutes." (HTTP 429). Unknown email se bhi lag gaya (shayad IP-based), poori suite ke 9 galat attempts par | Default suite mein max 3 galat attempts (TC_12/18/19). Extra security tests opt-in: `$env:RUN_LOCKOUT_TESTS=1`. 429 par test skip hota hai |
+| 2026-11-16 | Server load | 28 parallel login tests ke baad server ne ERR_CONNECTION_REFUSED diya (kuch der down) | `workers: 2` ya serial (`--workers=1`) rakho; zyada parallel logins mat chalao |
+| 2026-11-16 | Reports | `--reporter=list` use karne par HTML/offline report nahi banti (config reporters override hote hain) | Report ke liye `--reporter` flag mat do; `npm test` hi chalao. Offline report run ke baad browser mein khud khulti hai (`OFFLINE_REPORT_OPEN=0` se band) |
+| 2026-11-16 | Typing | 1000 chars `pressSequentially` se timeout hota hai | Lambi password value `fill()` se; email hamesha `pressSequentially` |
 | 2026-11-16 | Login | `locator.fill()` se email validation "does not look like an email" aati hai aur login nahi hota; asli typing kaam karti hai | `LoginPage.login()` `pressSequentially` use karta hai |
 | 2026-11-16 | App | ITZFlow = project-management app (140 projects, status tabs, Cards/Table views, `/my-work`, project tabs Sprints/History/Settings). Live data hai | Tests read-only; create/delete aur "Sync with ClickUp" kabhi nahi |
 | 2026-11-16 | Data | Counts (tabs, tickets) page load par pehle 0 hote hain phir aate hain | `expect.poll` se wait karo; hardcoded counts mat rakho, relations check karo (All = sum of statuses) |
