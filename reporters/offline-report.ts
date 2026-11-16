@@ -101,5 +101,9 @@ ${cards}
     fs.mkdirSync(path.dirname(this.outFile), { recursive: true });
     fs.writeFileSync(this.outFile, html, 'utf8');
     console.log(`\nOffline report: ${this.outFile}`);
+    if (this.autoOpen) {
+      // Windows: default browser mein report khol do
+      exec(`start "" "${this.outFile}"`, (err) => { if (err) console.log('Report auto-open failed:', err.message); });
+    }
   }
 }
