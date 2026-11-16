@@ -19,6 +19,8 @@ export default defineConfig({
     trace: 'retain-on-failure',  // fail pe debug trace save
     screenshot: 'on',            // har test ka screenshot report mein
     video: 'retain-on-failure',
+    // SLOWMO=300 set karo to har step 300ms ruk kar chalta hai (headed mein dekhne ke liye)
+    launchOptions: { slowMo: Number(process.env.SLOWMO ?? 0) },
   },
   projects: [
     // 1) Login ek baar karke session save karta hai
