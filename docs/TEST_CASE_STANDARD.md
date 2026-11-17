@@ -14,6 +14,7 @@ Test cases ki language **simple English** hoti hai. Chhote sentences, koi mushki
 | Sab reports ka index | `reports/index.html` | |
 
 Ek sub-module = ek doc + ek spec file + ek report.
+Agar module ka sirf ek hi sub-module ho (e.g. theme), to sub-module ka naam module jaisa rakho: `tests/theme/theme.spec.ts`, doc `docs/test-cases/theme.md`, report `reports/theme/theme test report.html`.
 
 ## 2. Test case ID
 

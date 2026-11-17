@@ -34,7 +34,7 @@ export default defineConfig({
     // 3) Baqi feature folders (workspace, project, my-work ...): saved session ke saath, read-only
     {
       name: 'chromium',
-      testMatch: /(workspace|project|my-work)\/.*\.spec\.ts/,
+      testMatch: /(workspace|project|my-work|theme)\/.*\.spec\.ts/,
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, storageState: '.auth/user.json' },
     },

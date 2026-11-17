@@ -43,6 +43,8 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 ## Status (2026-11-16)
 - 22/22 tests pass (setup, auth, workspace, project, my-work). Sab read-only: app live hai, create/delete/ClickUp sync kabhi nahi.
 - Credentials `.env` mein set hain; login ke liye `fill()` nahi, `pressSequentially` (GUIDELINES.md).
+- Theme module done: 16/16 pass (`tests/theme/theme.spec.ts`, doc `docs/test-cases/theme.md`).
+- Login module: 28 pass, 5 opt-in skip. Titles plain English with data.
 - Next: user se aur modules/flows confirm karna (ticket view, sprint detail, search), `.auth/` aur `reports/` gitignored.
 
 ## Test cases ka format (har module mein same)

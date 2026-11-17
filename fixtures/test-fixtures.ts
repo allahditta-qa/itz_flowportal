@@ -4,12 +4,14 @@ import { LoginPage } from '../pages/LoginPage';
 import { WorkspacePage } from '../pages/WorkspacePage';
 import { ProjectPage } from '../pages/ProjectPage';
 import { MyWorkPage } from '../pages/MyWorkPage';
+import { ThemeSwitcher } from '../pages/ThemeSwitcher';
 
 type Fixtures = {
   loginPage: LoginPage;
   workspacePage: WorkspacePage;
   projectPage: ProjectPage;
   myWorkPage: MyWorkPage;
+  theme: ThemeSwitcher;
 };
 
 export const test = base.extend<Fixtures>({
@@ -17,6 +19,7 @@ export const test = base.extend<Fixtures>({
   workspacePage: async ({ page }, use) => use(new WorkspacePage(page)),
   projectPage: async ({ page }, use) => use(new ProjectPage(page)),
   myWorkPage: async ({ page }, use) => use(new MyWorkPage(page)),
+  theme: async ({ page }, use) => use(new ThemeSwitcher(page)),
 });
 
 export { expect } from '@playwright/test';

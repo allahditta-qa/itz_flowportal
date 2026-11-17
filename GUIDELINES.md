@@ -10,6 +10,8 @@ Format: har entry mein **Date | Area | Learning | Kya karna hai**. Naye entries 
 
 | Date | Area | Learning | Action / Rule |
 |------|------|----------|---------------|
+| 2026-11-17 | Theme | Theme buttons Light/Dark/System: selected button ka `aria-pressed=true`; `html[data-theme]` light/dark/system; background light `rgb(246, 247, 250)`, dark `rgb(10, 12, 16)`; choice `localStorage` key `itzflow-theme` mein save; reload, login se app aur dusre pages par bhi rehti hai; pehli baar default Light; System computer theme ko live follow karta hai | `pages/ThemeSwitcher.ts` mein locators/checks. Tests: `tests/theme/theme.spec.ts` |
+| 2026-11-17 | Locators | App mein "Lighten Image AI Photo" jaisa button bhi `name: 'Light'` se match hota hai | Theme buttons hamesha `getByRole('button', { name, exact: true })` se |
 | 2026-11-16 | Login lockout | Galat logins ki limit hai: "Too many failed attempts. 15 minutes." (HTTP 429). Unknown email se bhi lag gaya (shayad IP-based), poori suite ke 9 galat attempts par | Default suite mein max 3 galat attempts (TC_12/18/19). Extra security tests opt-in: `$env:RUN_LOCKOUT_TESTS=1`. 429 par test skip hota hai |
 | 2026-11-16 | Server load | 28 parallel login tests ke baad server ne ERR_CONNECTION_REFUSED diya (kuch der down) | `workers: 2` ya serial (`--workers=1`) rakho; zyada parallel logins mat chalao |
 | 2026-11-16 | Reports | `--reporter=list` use karne par HTML/offline report nahi banti (config reporters override hote hain) | Report ke liye `--reporter` flag mat do; `npm test` hi chalao. Offline report run ke baad browser mein khud khulti hai (`OFFLINE_REPORT_OPEN=0` se band) |
