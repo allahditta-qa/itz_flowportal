@@ -1,6 +1,6 @@
 # Auth - Login Test Cases
 
-**Automation:** `tests/auth/login.spec.ts`  |  **Report:** `reports/runs/<date>/<time>/auth/login test report.html` (history: `reports/index.html`)
+**Automation:** `tests/auth/login.spec.ts`  |  **Report:** `reports/auth/login test <DD-MM-YYYY>_<HH-mm>.html` (all reports: `reports/index.html`)
 **Page:** `http://172.16.10.2:8300/login`
 
 ## Overview

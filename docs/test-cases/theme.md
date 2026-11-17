@@ -1,6 +1,6 @@
 # Theme - Light, Dark and System Test Cases
 
-**Automation:** `tests/theme/theme.spec.ts`  |  **Report:** `reports/runs/<date>/<time>/theme/theme test report.html` (history: `reports/index.html`)
+**Automation:** `tests/theme/theme.spec.ts`  |  **Report:** `reports/theme/theme test <DD-MM-YYYY>_<HH-mm>.html` (all reports: `reports/index.html`)
 **Where:** the three small buttons (sun, moon, screen) on the login page and on every page of the app.
 
 ## Overview

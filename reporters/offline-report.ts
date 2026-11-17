@@ -1,13 +1,12 @@
-// Custom reporter: HAR test run ki alag, date-wise report folder banata hai. Purani runs ki reports kabhi overwrite nahi hoti.
+// Custom reporter: har module/sub-module ki ALAG single-file HTML report banata hai (screenshots base64 ke saath).
 //
-// Folder structure:
-//   reports/index.html                                   -> sab runs ki history (date-wise, newest upar) + har sub-module ki latest report
-//   reports/runs/<YYYY-MM-DD>/<HH-mm-ss>/index.html      -> is run ka summary (kaun se modules, kitne pass/fail)
-//   reports/runs/<date>/<time>/<module>/<sub> test report.html   -> us module/sub-module ki report (screenshots ke saath)
-//   reports/runs/<date>/<time>/run.json                  -> is run ka data (history index isi se banta hai)
-//
-// Module/sub-module ka naam: tests/<module>/<submodule>.spec.ts  ->  <module>/<submodule> test report.html
-// Reports single file hain, bina server/internet ke double-click se khulti hain.
+// Structure (purana hi): har module ka apna folder, report file ke NAAM mein date aur time:
+//   reports/<module>/<submodule> test <DD-MM-YYYY>_<HH-mm>.html
+//   Example: reports/theme/theme test 17-11-2026_03-05.html
+//            reports/theme/theme test 17-11-2026_03-17.html
+// Purani report kabhi overwrite nahi hoti (naya run = nayi file, kyunke naam mein time hai).
+// reports/index.html mein sab reports ki history (date-wise) + har module ki latest report ka link hota hai.
+// Reports bina server/internet ke double-click se khulti hain.
 import type { FullResult, Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
@@ -30,27 +29,18 @@ interface Group {
   rows: Map<string, Row>;
 }
 
-interface Summary {
+// history.json ki ek entry = ek report file
+interface Entry {
   module: string;
   sub: string;
-  file: string; // run folder ke andar relative path
+  file: string; // reports folder se relative path (e.g. theme/theme test 17-11-2026_03-05.html)
+  ts: string; // ISO time (sorting ke liye)
+  date: string; // DD-MM-YYYY
+  time: string; // HH:mm
   total: number;
   passed: number;
   failed: number;
   skipped: number;
-}
-
-interface RunInfo {
-  date: string; // YYYY-MM-DD
-  time: string; // HH-mm-ss
-  started: string; // readable
-  durationSec: number;
-  overall: string;
-  total: number;
-  passed: number;
-  failed: number;
-  skipped: number;
-  modules: Summary[];
 }
 
 const esc = (s: string) =>
@@ -126,57 +116,53 @@ export default class OfflineReporter implements Reporter {
   }
 
   onEnd(result: FullResult): void {
-    if (this.groups.size === 0) return; // koi test chala hi nahi (e.g. --list): koi report folder nahi banta
+    if (this.groups.size === 0) return; // koi test chala hi nahi (e.g. --list): koi report nahi banti
 
     const d = this.startedAt;
-    const date = `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}`;
-    const time = `${two(d.getHours())}-${two(d.getMinutes())}-${two(d.getSeconds())}`;
-    const runDir = path.join(this.reportsDir, 'runs', date, time);
+    const date = `${two(d.getDate())}-${two(d.getMonth() + 1)}-${d.getFullYear()}`; // DD-MM-YYYY
+    const stamp = `${date}_${two(d.getHours())}-${two(d.getMinutes())}`; // 17-11-2026_03-05
     const durationSec = Math.round((Date.now() - d.getTime()) / 1000);
 
-    const modules: Summary[] = [];
+    const historyFile = path.join(this.reportsDir, 'history.json');
+    let history: Entry[] = [];
+    try { history = JSON.parse(fs.readFileSync(historyFile, 'utf8')); } catch { /* pehli baar */ }
+
     const written: string[] = [];
     for (const g of [...this.groups.values()].sort((a, b) => `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`))) {
       const rows = [...g.rows.values()].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
-      const file = `${g.module}/${g.sub.replace(/[-_]/g, ' ')} test report.html`;
-      const full = path.join(runDir, file);
-      fs.mkdirSync(path.dirname(full), { recursive: true });
-      const s: Summary = {
+      const dir = path.join(this.reportsDir, g.module);
+      fs.mkdirSync(dir, { recursive: true });
+
+      // Naam: "<sub> test DD-MM-YYYY_HH-mm.html". Usi minute mein dobara run ho to seconds jod dete hain (overwrite nahi hota)
+      const base = `${g.sub.replace(/[-_]/g, ' ')} test ${stamp}`;
+      let name = `${base}.html`;
+      if (fs.existsSync(path.join(dir, name))) name = `${base}-${two(d.getSeconds())}.html`;
+      const full = path.join(dir, name);
+
+      const e: Entry = {
         module: g.module,
         sub: g.sub,
-        file,
+        file: `${g.module}/${name}`,
+        ts: d.toISOString(),
+        date,
+        time: `${two(d.getHours())}:${two(d.getMinutes())}`,
         total: rows.length,
         passed: rows.filter((r) => r.status === 'passed').length,
         failed: rows.filter((r) => r.status === 'failed' || r.status === 'timedOut').length,
         skipped: rows.filter((r) => r.status === 'skipped').length,
       };
-      fs.writeFileSync(full, this.renderModule(g, rows, s, d, durationSec, result.status), 'utf8');
-      modules.push(s);
+      fs.writeFileSync(full, this.renderModule(g, rows, e, durationSec, result.status), 'utf8');
+      history.push(e);
       written.push(full);
     }
 
-    const run: RunInfo = {
-      date,
-      time,
-      started: d.toLocaleString(),
-      durationSec,
-      overall: result.status,
-      total: modules.reduce((n, m) => n + m.total, 0),
-      passed: modules.reduce((n, m) => n + m.passed, 0),
-      failed: modules.reduce((n, m) => n + m.failed, 0),
-      skipped: modules.reduce((n, m) => n + m.skipped, 0),
-      modules,
-    };
-    fs.writeFileSync(path.join(runDir, 'run.json'), JSON.stringify(run, null, 2), 'utf8');
-    const runIndex = path.join(runDir, 'index.html');
-    fs.writeFileSync(runIndex, this.renderRunIndex(run), 'utf8');
-    const rootIndex = this.writeRootIndex();
+    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
+    const indexFile = this.writeIndex(history);
 
     for (const w of written) console.log(`\nModule report: ${w}`);
-    console.log(`This run's summary: ${runIndex}`);
-    console.log(`All runs history:   ${rootIndex}`);
-    // Ek hi module chala ho to seedha uski report kholo, warna is run ka summary
-    const toOpen = written.length === 1 ? written[0] : runIndex;
+    console.log(`All reports index: ${indexFile}`);
+    // Ek hi module chala ho to seedha uski report kholo, warna index
+    const toOpen = written.length === 1 ? written[0] : indexFile;
     if (this.autoOpen) {
       exec(`start "" "${toOpen}"`, (err) => { if (err) console.log('Report auto-open failed:', err.message); });
     }
@@ -184,7 +170,7 @@ export default class OfflineReporter implements Reporter {
 
   // ───────────── HTML banane wale helpers ─────────────
 
-  private renderModule(g: Group, rows: Row[], s: Summary, started: Date, durationSec: number, overall: string): string {
+  private renderModule(g: Group, rows: Row[], e: Entry, durationSec: number, overall: string): string {
     const cards = rows
       .map((r) => {
         const cls = r.status === 'passed' ? 'pass' : r.status === 'skipped' ? 'skip' : 'fail';
@@ -201,78 +187,40 @@ export default class OfflineReporter implements Reporter {
       .join('\n');
 
     return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(pretty(g.module))} - ${esc(pretty(g.sub))} - Test Report</title><style>${STYLE}</style></head><body><main>
-<p class="meta"><a href="../index.html">&larr; This run's summary</a> · <a href="../../../../index.html">All runs history</a></p>
+<title>${esc(pretty(g.sub))} Test Report ${esc(e.date)} ${esc(e.time)}</title><style>${STYLE}</style></head><body><main>
+<p class="meta"><a href="../index.html">&larr; All reports</a></p>
 <h1>${esc(pretty(g.module))} &rsaquo; ${esc(pretty(g.sub))}</h1>
-<div class="meta">Run: ${esc(started.toLocaleString())} · duration ${durationSec}s · overall: ${esc(overall)} · click a screenshot to enlarge</div>
-<div class="sum"><div><b>${s.total}</b>total</div><div><b class="pass-t">${s.passed}</b>passed</div><div><b class="fail-t">${s.failed}</b>failed</div><div><b class="skip-t">${s.skipped}</b>skipped</div></div>
+<div class="meta">Run: ${esc(e.date)} ${esc(e.time)} · duration ${durationSec}s · overall: ${esc(overall)} · click a screenshot to enlarge</div>
+<div class="sum"><div><b>${e.total}</b>total</div><div><b class="pass-t">${e.passed}</b>passed</div><div><b class="fail-t">${e.failed}</b>failed</div><div><b class="skip-t">${e.skipped}</b>skipped</div></div>
 ${cards}
 </main></body></html>`;
   }
 
-  private moduleTable(modules: Summary[], hrefPrefix: (s: Summary) => string): string {
-    const rows = modules
-      .map(
-        (s) => `<tr><td>${esc(pretty(s.module))}</td><td><a href="${esc(encodeURI(hrefPrefix(s)))}">${esc(pretty(s.sub))}</a></td><td>${s.total}</td>
-<td class="pass-t">${s.passed}</td><td class="${s.failed ? 'fail-t' : ''}">${s.failed}</td><td class="skip-t">${s.skipped}</td>
-<td class="${s.failed ? 'fail-t' : 'pass-t'}">${s.failed ? 'Failed' : 'Passed'}</td></tr>`,
-      )
+  // reports/index.html: har module ki latest report + date-wise history (newest upar)
+  private writeIndex(history: Entry[]): string {
+    const sorted = [...history].sort((a, b) => b.ts.localeCompare(a.ts));
+    const link = (e: Entry, text: string) => `<a href="${esc(encodeURI(e.file))}">${esc(text)}</a>`;
+    const counts = (e: Entry) => `<td>${e.total}</td><td class="pass-t">${e.passed}</td><td class="${e.failed ? 'fail-t' : ''}">${e.failed}</td><td class="skip-t">${e.skipped}</td>
+<td class="${e.failed ? 'fail-t' : 'pass-t'}">${e.failed ? 'Failed' : 'Passed'}</td>`;
+
+    const latest = new Map<string, Entry>();
+    for (const e of sorted) if (!latest.has(`${e.module}/${e.sub}`)) latest.set(`${e.module}/${e.sub}`, e);
+    const latestRows = [...latest.values()]
+      .sort((a, b) => `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`))
+      .map((e) => `<tr><td>${esc(pretty(e.module))}</td><td>${link(e, pretty(e.sub))}</td>${counts(e)}<td class="meta">${esc(e.date)} ${esc(e.time)}</td></tr>`)
       .join('\n');
-    return `<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>`;
-  }
 
-  private renderRunIndex(run: RunInfo): string {
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Test Run ${esc(run.date)} ${esc(run.time)}</title><style>${STYLE}</style></head><body><main>
-<p class="meta"><a href="../../../index.html">&larr; All runs history</a></p>
-<h1>Test run: ${esc(run.date)} ${esc(run.time.replace(/-/g, ':'))}</h1>
-<div class="meta">Started ${esc(run.started)} · duration ${run.durationSec}s · overall: ${esc(run.overall)}</div>
-<div class="sum"><div><b>${run.total}</b>total</div><div><b class="pass-t">${run.passed}</b>passed</div><div><b class="fail-t">${run.failed}</b>failed</div><div><b class="skip-t">${run.skipped}</b>skipped</div></div>
-<div class="meta" style="margin-bottom:8px">Click a sub-module to open its report.</div>
-${this.moduleTable(run.modules, (s) => s.file)}
-</main></body></html>`;
-  }
-
-  // reports/runs/* ko scan karke history page banata hai (newest upar) + har sub-module ki latest report
-  private writeRootIndex(): string {
-    const runsDir = path.join(this.reportsDir, 'runs');
-    const runs: RunInfo[] = [];
-    for (const date of fs.existsSync(runsDir) ? fs.readdirSync(runsDir) : []) {
-      for (const time of fs.readdirSync(path.join(runsDir, date))) {
-        try {
-          runs.push(JSON.parse(fs.readFileSync(path.join(runsDir, date, time, 'run.json'), 'utf8')));
-        } catch { /* adhoori folder: chhod do */ }
-      }
-    }
-    runs.sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
-
-    // Har sub-module ki sab se nayi report
-    const latest = new Map<string, { s: Summary; run: RunInfo }>();
-    for (const r of runs) for (const s of r.modules) if (!latest.has(`${s.module}/${s.sub}`)) latest.set(`${s.module}/${s.sub}`, { s, run: r });
-    const latestRows = [...latest.values()].sort((a, b) => `${a.s.module}/${a.s.sub}`.localeCompare(`${b.s.module}/${b.s.sub}`));
-    const latestTable = `<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th><th>Run</th></tr></thead><tbody>${latestRows
-      .map(
-        ({ s, run }) => `<tr><td>${esc(pretty(s.module))}</td><td><a href="${esc(encodeURI(`runs/${run.date}/${run.time}/${s.file}`))}">${esc(pretty(s.sub))}</a></td><td>${s.total}</td>
-<td class="pass-t">${s.passed}</td><td class="${s.failed ? 'fail-t' : ''}">${s.failed}</td><td class="skip-t">${s.skipped}</td>
-<td class="${s.failed ? 'fail-t' : 'pass-t'}">${s.failed ? 'Failed' : 'Passed'}</td><td class="meta">${esc(run.date)} ${esc(run.time.replace(/-/g, ':'))}</td></tr>`,
-      )
-      .join('\n')}</tbody></table>`;
-
-    // Date-wise history
-    let history = '';
+    let hist = '';
     let lastDate = '';
-    for (const r of runs) {
-      if (r.date !== lastDate) {
-        if (lastDate) history += '</tbody></table>';
-        history += `<h2>${esc(r.date)}</h2><table><thead><tr><th>Time</th><th>Modules</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th></tr></thead><tbody>`;
-        lastDate = r.date;
+    for (const e of sorted) {
+      if (e.date !== lastDate) {
+        if (lastDate) hist += '</tbody></table>';
+        hist += `<h2>${esc(e.date)}</h2><table><thead><tr><th>Time</th><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th></tr></thead><tbody>`;
+        lastDate = e.date;
       }
-      const names = r.modules.map((m) => pretty(m.sub)).join(', ');
-      history += `<tr><td><a href="${esc(encodeURI(`runs/${r.date}/${r.time}/index.html`))}">${esc(r.time.replace(/-/g, ':'))}</a></td><td>${esc(names)}</td><td>${r.total}</td>
-<td class="pass-t">${r.passed}</td><td class="${r.failed ? 'fail-t' : ''}">${r.failed}</td><td class="skip-t">${r.skipped}</td>
-<td class="${r.failed ? 'fail-t' : 'pass-t'}">${r.failed ? 'Failed' : 'Passed'}</td></tr>`;
+      hist += `<tr><td>${esc(e.time)}</td><td>${esc(pretty(e.module))}</td><td>${link(e, pretty(e.sub))}</td>${counts(e)}</tr>`;
     }
-    if (lastDate) history += '</tbody></table>';
+    if (lastDate) hist += '</tbody></table>';
 
     const file = path.join(this.reportsDir, 'index.html');
     fs.mkdirSync(this.reportsDir, { recursive: true });
@@ -280,9 +228,10 @@ ${this.moduleTable(run.modules, (s) => s.file)}
       file,
       `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ITZ Flow - Test Reports</title><style>${STYLE}</style></head><body><main>
-<h1>ITZ Flow - Test Reports</h1><div class="meta">Har test run ki alag report, date-wise. Purani runs kabhi delete ya overwrite nahi hoti.</div>
-<h2>Latest report of each module</h2>${latestTable}
-<h2 style="margin-top:36px">Run history (newest first)</h2>${history}
+<h1>ITZ Flow - Test Reports</h1><div class="meta">Har run ki alag report (file ke naam mein date aur time). Purani reports kabhi overwrite nahi hoti.</div>
+<h2>Latest report of each module</h2>
+<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th><th>Run</th></tr></thead><tbody>${latestRows}</tbody></table>
+<h2 style="margin-top:36px">History (newest first)</h2>${hist}
 </main></body></html>`,
       'utf8',
     );

@@ -35,11 +35,9 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 
 ## Reports (kam effort rakhna, user ki preference)
 - Har test ka screenshot report mein aata hai (`screenshot: 'on'`).
-- **Har test run ki alag, date-wise report** banti hai, purani kabhi overwrite nahi hoti:
-  - `reports/runs/<YYYY-MM-DD>/<HH-mm-ss>/<module>/<submodule> test report.html` (jaise `.../auth/login test report.html`)
-  - `reports/runs/<date>/<time>/index.html` = us run ka summary
-  - `reports/index.html` = sab runs ki history (date-wise, newest upar) + har module ki latest report
-- Reports single file hain, screenshots embedded, double-click se khulti hain. `npm run reports` history kholta hai.
+- **Folder structure purana hi rahega** (har module ka apna folder `reports/<module>/`). Har run ki **nayi file**, naam mein date aur time: `reports/<module>/<submodule> test <DD-MM-YYYY>_<HH-mm>.html`. Example: `reports/theme/theme test 17-11-2026_03-05.html`, `reports/theme/theme test 17-11-2026_03-17.html`. Purani file kabhi overwrite nahi hoti (usi minute mein dobara run ho to naam ke aakhir mein seconds jud jate hain). `reports/runs/...` jaisa naya folder structure kabhi mat banao.
+- `reports/index.html` = har module ki latest report + date-wise history (data `reports/history.json` mein). `npm run reports` isay kholta hai.
+- Reports single file hain, screenshots embedded, double-click se khulti hain.
 - Report **config ke reporter** se banti hai, to `--reporter=...` flag kabhi mat do. Report browser mein auto-open hoti hai (`OFFLINE_REPORT_OPEN=0` se band; background runs mein band rakho).
 - **Manual run (report ke saath):** terminal mein `npm run test:login`, `test:theme`, `test:workspace`, `test:project`, `test:my-work`, `test:auth`, `npm test`, `npm run test:headed`; ya VS Code mein Terminal > Run Task > "Test: ..." (`.vscode/tasks.json`). VS Code Playwright extension ke play button se report banne ki guarantee nahi (wo apna reporter use karta hai), is liye manual run ke liye upar wale commands/tasks use karo.
 - Reporting par zyada time/effort mat lagao; `reporters/offline-report.ts` jaisa hai waisa hi rehne do jab tak kuch toot na jaye.
