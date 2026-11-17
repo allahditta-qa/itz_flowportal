@@ -12,7 +12,7 @@ A logged-in user can sign out. After signing out the user goes back to the login
 
 | ID | Title | Priority | Preconditions | Steps | Expected result |
 | --- | --- | --- | --- | --- | --- |
-| TC_AUTH_01 | Sign out returns the user to the login page | High | A valid account exists | 1. Log in with valid details. 2. Click "Sign out". | The login page opens. |
+| TC_AUTH_01 | Login with valid email and valid password, click Sign out and check the login page opens | High | A valid account exists | 1. Log in with valid details. 2. Click "Sign out". | The login page opens. |
 
 ## Summary
 

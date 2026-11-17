@@ -44,6 +44,7 @@ Har file in sections ke saath, isi order mein:
 - **Expected result:** saaf aur check hone wala (e.g. "The workspace page opens.").
 
 ### Writing rules
+0. **Title rule (report mein yehi dikhta hai):** title ek poora English sentence ho jo batae *kya kiya jata hai* aur *kaunsa data use hota hai*. Example: `Login with unknown email "no.such.user.qa@theitzon.com" and password "WrongPass#123"`. Asli email/password kabhi title mein mat likho, wahan `valid email and valid password` likho. Code ke test title aur doc ka Title column bilkul same hon.
 1. Simple English, active voice: "Click Sign in", not "Sign in should be clicked".
 2. Ek test case = ek cheez check karna.
 3. Exact UI text quotes mein likho: "Incorrect email or password".

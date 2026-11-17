@@ -11,6 +11,7 @@ import { exec } from 'child_process';
 interface Row {
   id: string;
   title: string;
+  group: string;
   status: string;
   duration: number;
   retry: number;
@@ -85,12 +86,14 @@ export default class OfflineReporter implements Reporter {
       })
       .filter((x): x is { name: string; src: string } => x !== null);
 
-    const fullTitle = test.titlePath().slice(2).join(' › ');
+    const fullTitle = test.title; // sirf test ka apna title (file/describe path nahi)
+    const group = test.titlePath().slice(2, -1).join(' › ');
     const id = fullTitle.match(/TC_[A-Z0-9_.]+/)?.[0] ?? '';
     // Retry hone par aakhri attempt ka result rakhte hain
     this.groups.get(key)!.rows.set(test.id, {
       id,
       title: fullTitle,
+      group,
       status: result.status,
       duration: result.duration,
       retry: result.retry,
@@ -152,7 +155,7 @@ export default class OfflineReporter implements Reporter {
           .join('');
         return `<section class="card ${cls}">
   <div class="head"><span class="badge ${cls}">${esc(r.status)}</span><b>${esc(r.title)}</b>
-  <span class="meta">${(r.duration / 1000).toFixed(1)}s${r.retry ? ` · retry #${r.retry}` : ''}</span></div>
+  <span class="meta">${esc(r.group)} · ${(r.duration / 1000).toFixed(1)}s${r.retry ? ` · retry #${r.retry}` : ''}</span></div>
   ${r.error ? `<pre>${esc(r.error)}</pre>` : ''}
   ${imgs ? `<div class="shots">${imgs}</div>` : '<p class="meta">No screenshot (test was skipped)</p>'}
 </section>`;
