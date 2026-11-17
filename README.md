@@ -1,39 +1,80 @@
-# ITZ Flow - Playwright Automation (Page Object Model)
+# ITZ Flow - Test Automation Framework (Playwright + TypeScript, POM)
 
-## Framework kya hai? (Beginner guide)
+ITZ Flow web app (`http://172.16.10.2:8300`, sirf local network) ki QA: manual analysis + automation, module-wise, framework se sign-off report tak.
 
-Playwright browser ko code se control karta hai (click, type, check). Tests ko saaf rakhne ke liye hum **POM (Page Object Model)** use karte hain:
-**har web page ke liye ek class** jisme us page ke elements aur actions hon. Test sirf in actions ko call karta hai.
+## 1. Kaam ka tareeqa (QA process)
+Har module isi lifecycle se guzarta hai (detail: [docs/QA_PROCESS.md](docs/QA_PROCESS.md)):
+
+`Framework → Analysis → Test Plan → Test Cases → Automation → Execution (CSV + Report) → Defects → Sign-off`
+
+| Cheez | Jagah |
+| --- | --- |
+| Test plan (har module ka) | `docs/test-plans/<module>.md` |
+| Test cases (simple English, standard format) | `docs/test-cases/<module>-<sub>.md` ([standard](docs/TEST_CASE_STANDARD.md)) |
+| **Master test case CSV** (regression ke liye, sirf test case badalne par update) | `docs/test-cases/<module>-<sub>.csv` |
+| Defects aur observations | `docs/defects/<module>.md` |
+| Sign-off report | `docs/signoff/<module> signoff <DD-MM-YYYY>.md` |
+| Templates | `docs/templates/` |
+| Module tracker aur status | [PLAN.md](PLAN.md) |
+| Seekhi hui baatein (app ka behaviour, gotchas) | [GUIDELINES.md](GUIDELINES.md) |
+
+## 2. Framework structure
 
 ```
 ITZ Flow/
-├── config/env.ts           .env se URL/email/password parhta hai
-├── pages/                  PAGE OBJECTS (POM) - elements + actions
-│   ├── BasePage.ts         common kaam (goto, url)
-│   ├── LoginPage.ts        login page ke elements + login()
-│   └── WorkspacePage.ts    workspace page
-├── fixtures/test-fixtures.ts  tests ko ready page objects deta hai
-├── test-data/users.ts      test data (valid/invalid users)
-├── utils/                  helper functions (abhi khali)
-├── tests/auth/login.spec.ts  TEST CASES
-├── playwright.config.ts    Playwright settings (URL, browser, report)
-├── .env                    secrets (email/password) - git me nahi jata
-└── package.json            scripts (npm test)
+├── config/env.ts                  .env se URL, workspace id, email, password
+├── pages/                         Page Objects (POM): locators + actions, sirf yahan
+├── fixtures/test-fixtures.ts      tests ko ready page objects deta hai
+├── test-data/                     test data (users, stable app naam)
+├── tests/<module>/<sub>.spec.ts   test cases (auth, workspace, project, my-work, theme)
+├── tests/setup/auth.setup.ts      login ek baar, session save (.auth/, gitignored)
+├── reporters/offline-report.ts    har run ki module-wise HTML report + run se pehle CSV + history
+├── scripts/export-test-cases.js   test case CSV (master + per run)
+├── docs/                          process, plans, test cases, defects, sign-off, templates
+├── reports/                       (gitignored) reports/<module>/..., index.html, history.json
+├── playwright.config.ts           projects: setup, auth (bina session), chromium (saved session)
+└── CLAUDE.md                      project ke rules (Claude ke liye)
 ```
 
-## Flow samjhiye
-`test (login.spec.ts)` -> fixture se `loginPage` milta hai -> `loginPage.login(email, pass)` -> page object andar locators se browser chalata hai.
-UI badle to sirf `pages/` update karni hoti hai, tests nahi.
+UI badle to sirf `pages/` update hoti hai, tests nahi.
 
-## Naya test kaise likhein
-1. Naye page ke liye `pages/XPage.ts` banao (locators + methods).
-2. `fixtures/test-fixtures.ts` me us page ko add karo.
-3. `tests/<feature>/x.spec.ts` me test likho.
+## 3. Setup
+1. `npm install` aur `npx playwright install chromium`
+2. `.env` banao (`.env.example` dekho): `ITZ_EMAIL`, `ITZ_PASSWORD` bharo (kabhi commit nahi hota)
+3. PC usi local network (172.16.10.x) se connected ho
 
-## Setup aur run
-1. `npm install`
-2. `npx playwright install chromium`
-3. `.env` me `ITZ_EMAIL` aur `ITZ_PASSWORD` bharo
-4. `npm test` (headless) | `npm run test:headed` (browser dikhe) | `npm run report` (HTML report)
+## 4. Run commands
 
-Note: PC ko usi local network (172.16.10.x) se connected hona chahiye.
+| Kya chalana hai | Command |
+| --- | --- |
+| Sab tests | `npm test` |
+| Browser dikhe | `npm run test:headed` |
+| Ek module | `npm run test:login`, `test:signout`, `test:theme`, `test:workspace`, `test:project`, `test:my-work`, `test:auth` |
+| Ek test, naam se | `npx playwright test -g "TC_THEME_04" --headed` |
+| Slow motion (dekhne ke liye) | PowerShell: `$env:SLOWMO=250; npm run test:headed` |
+| Master CSV update (test case badalne ke baad) | `npm run cases:csv` |
+| Master CSV theek hai ya nahi | `npm run cases:check` |
+| Reports ki history kholna | `npm run reports` |
+
+VS Code mein: Terminal > Run Task > "Test: ..." bhi hai. Extension ke play button se report banne ki guarantee nahi.
+
+## 5. Execution ke outputs (har run)
+- **Run se pehle:** jo test cases chalne wale hain unki CSV: `reports/<module>/<sub> test cases <DD-MM-YYYY>_<HH-mm>.csv`
+- **Run ke baad:** report (screenshots ke saath): `reports/<module>/<sub> test <DD-MM-YYYY>_<HH-mm>.html`
+- **History:** `reports/index.html`, sab se upar date + time, neeche module-wise. Purani reports kabhi overwrite nahi hoti.
+
+## 6. Zaroori conventions
+- Test case ID: `TC_<SUB>_<NN>`. Title simple English mein, data ke saath (asli password kabhi nahi).
+- Locators sirf `pages/` mein. Pehle `getByRole`, `getByPlaceholder`, `getByLabel`.
+- App live hai: tests read-only. Login par galat attempts kam (15 minute lockout). Workers 2 se zyada nahi.
+- Login mein email `fill()` se nahi, asli typing (`pressSequentially`) se.
+- Credentials sirf `.env` mein.
+
+## 7. Naya module add karna
+1. Module explore karo, `GUIDELINES.md` mein notes.
+2. `docs/test-plans/<module>.md` ([template](docs/templates/test-plan.md)).
+3. `docs/test-cases/<module>-<sub>.md` (standard format), phir `npm run cases:csv`.
+4. Page object (`pages/`), fixture, `tests/<module>/<sub>.spec.ts`; naya folder ho to `playwright.config.ts` ke `chromium` project `testMatch` mein add.
+5. Chalao, reports check karo, defects `docs/defects/<module>.md` mein.
+6. Sign-off: `docs/signoff/<module> signoff <date>.md` ([template](docs/templates/signoff-report.md)).
+7. `PLAN.md` tracker, `GUIDELINES.md`, commit aur push.

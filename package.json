@@ -14,7 +14,9 @@
     "test:workspace": "playwright test tests/workspace",
     "test:project": "playwright test tests/project",
     "test:my-work": "playwright test tests/my-work",
-    "reports": "start \"\" reports\\index.html"
+    "reports": "start \"\" reports\\index.html",
+    "cases:csv": "node scripts/export-test-cases.js",
+    "cases:check": "node scripts/export-test-cases.js --check"
   },
   "keywords": [],
   "author": "",

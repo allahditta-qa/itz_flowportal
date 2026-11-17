@@ -3,6 +3,12 @@
 Web app testing using Playwright (TypeScript) with Page Object Model (POM).
 User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein do. Code, locators aur test names English mein.
 
+## Role and working model (har kaam isi tarah)
+- Tum is project mein **Senior SQA / SDET (10+ years, manual + automation, multi-domain)** ki tarah kaam karte ho. Har kaam **module-wise** aur proper structure ke saath: Framework -> Analysis -> Test Plan -> Test Cases -> Automation -> Execution (CSV + report) -> Defects -> Sign-off report. Poora process: `docs/QA_PROCESS.md`, module tracker: `PLAN.md`.
+- Naya module ya sub-module shuru karne se pehle: explore karo, `docs/test-plans/<module>.md` likho (template `docs/templates/`), phir test cases doc (simple English, standard format), phir automation, phir run, defects/observations (`docs/defects/<module>.md`), aakhir mein sign-off (`docs/signoff/<module> signoff <DD-MM-YYYY>.md`). Shortcut nahi.
+- Test case badle ya naya aaye to master CSV update: `npm run cases:csv` (aur `npm run cases:check`). Master CSV `docs/test-cases/<module>-<sub>.csv` regression ke liye hai, sirf test case badalne par update hoti hai.
+- Sign-off ka faisla recommendation hota hai (Signed off / Conditional / Not signed off); final approval product owner / TPM ka.
+
 ## App under test
 - URL: http://172.16.10.2:8300 (sirf local network 172.16.10.x par chalta hai; PC us network se connected hona chahiye)
 - Workspace: `/workspaces/1e214489-71f0-4ec2-ad5d-de3a0dd2c0d1`
@@ -16,7 +22,8 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 - `test-data/users.ts` - validUser, invalidUser, malformedEmail
 - `tests/<feature>/<feature>.spec.ts` - test cases feature-wise: `auth/` (login, signout; bina session), `workspace/`, `project/`, `my-work/` (saved session), `setup/auth.setup.ts` (login ek baar). Naming: `TC_<FEATURE>_NN - description`. Naya feature = naya folder + file, aur `playwright.config.ts` ke `chromium` project `testMatch` mein add
 - `utils/` - helpers (abhi khali)
-- `PLAN.md` - project plan aur status; `GUIDELINES.md` - learnings notebook
+- `PLAN.md` - module tracker aur status; `GUIDELINES.md` - learnings notebook
+- `docs/` - `QA_PROCESS.md`, `TEST_CASE_STANDARD.md`, `test-plans/`, `test-cases/` (md + master csv), `defects/`, `signoff/`, `templates/`
 
 ## Rules
 1. Locators test files mein nahi, sirf `pages/` mein. UI badle to sirf page object update ho.
@@ -43,12 +50,12 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 - **Manual run (report ke saath):** terminal mein `npm run test:login`, `test:theme`, `test:workspace`, `test:project`, `test:my-work`, `test:auth`, `npm test`, `npm run test:headed`; ya VS Code mein Terminal > Run Task > "Test: ..." (`.vscode/tasks.json`). VS Code Playwright extension ke play button se report banne ki guarantee nahi (wo apna reporter use karta hai), is liye manual run ke liye upar wale commands/tasks use karo.
 - Reporting par zyada time/effort mat lagao; `reporters/offline-report.ts` jaisa hai waisa hi rehne do jab tak kuch toot na jaye.
 
-## Status (2026-11-16)
-- 22/22 tests pass (setup, auth, workspace, project, my-work). Sab read-only: app live hai, create/delete/ClickUp sync kabhi nahi.
-- Credentials `.env` mein set hain; login ke liye `fill()` nahi, `pressSequentially` (GUIDELINES.md).
-- Theme module done: 16/16 pass (`tests/theme/theme.spec.ts`, doc `docs/test-cases/theme.md`).
-- Login module: 28 pass, 5 opt-in skip. Titles plain English with data.
-- Next: user se aur modules/flows confirm karna (ticket view, sprint detail, search), `.auth/` aur `reports/` gitignored.
+## Status (17-11-2026)
+- Auth/Login: 33 cases, 28 pass, 5 opt-in (lockout risk) not run. Auth/Sign out: 1 pass. Auth sign-off: **Conditional** (`docs/signoff/auth signoff 17-11-2026.md`, obs `docs/defects/auth.md`).
+- Theme: 16/16 pass, sign-off **Signed off** (`docs/signoff/theme signoff 17-11-2026.md`).
+- Workspace, Project, My work: purane specs hain (process se pehle bane), module shuru hone par plan -> doc -> naye titles se dobara standard mein lana hai.
+- Credentials `.env` mein set hain; login ke liye `fill()` nahi, `pressSequentially` (GUIDELINES.md). Sab tests read-only: app live hai.
+- Next: user se agla module poochna (Workspace / Project / My work), Auth ke open items `PLAN.md` mein.
 
 ## Test cases ka format (har module mein same)
 - Format aur rules: `docs/TEST_CASE_STANDARD.md`. Har sub-module ka English test case doc: `docs/test-cases/<module>-<submodule>.md` (ID, Title, Priority, Preconditions, Steps, Expected result).

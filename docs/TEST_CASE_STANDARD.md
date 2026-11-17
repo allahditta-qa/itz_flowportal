@@ -11,6 +11,7 @@ Test cases ki language **simple English** hoti hai. Chhote sentences, koi mushki
 | Automation code | `tests/<module>/<submodule>.spec.ts` | `tests/auth/login.spec.ts` |
 | Page object | `pages/<Name>Page.ts` | `pages/LoginPage.ts` |
 | Report (har run ki nayi file, auto banti hai) | `reports/<module>/<submodule> test <DD-MM-YYYY>_<HH-mm>.html` | `reports/auth/login test 17-11-2026_03-05.html` |
+| **Master CSV** (regression ke liye, ek fixed file) | `docs/test-cases/<module>-<submodule>.csv` | `docs/test-cases/auth-login.csv` |
 | Test cases ki CSV (run se pehle, sirf jo chalne wale hain) | `reports/<module>/<submodule> test cases <DD-MM-YYYY>_<HH-mm>.csv` | `reports/auth/login test cases 17-11-2026_03-05.csv` |
 | Sab reports ka index (history + latest) | `reports/index.html` | |
 
@@ -62,3 +63,11 @@ Har file in sections ke saath, isi order mein:
 - [ ] Doc ke har test case ka ID spec ke test title mein hai (CSV doc se banti hai, warna "Not documented yet" likha aata hai)
 - [ ] Tests chalaye, report `reports/<module>/<submodule> test <DD-MM-YYYY>_<HH-mm>.html` ban gayi aur `reports/index.html` mein dikhti hai
 - [ ] `PLAN.md` aur `GUIDELINES.md` update kiye
+
+## 5. Master CSV (regression ke liye)
+- Har sub-module ki ek **master CSV** hoti hai: `docs/test-cases/<module>-<submodule>.csv` (naam mein date nahi). Ye sab test cases ki poori list hai aur regression testing mein kaam aati hai.
+- Ye file **tab hi update hoti hai jab koi test case badle ya naya aaye**. Test cases `.md` doc mein badlo, phir `npm run cases:csv`. Jo rows nahi badli unki `Last Updated` date wahi rehti hai; badli hui ya nayi row ki date aaj ki ho jati hai.
+- `npm run cases:check` batata hai ke doc aur master CSV same hain ya nahi. Run shuru hone par bhi agar farq ho to ek NOTE print hota hai (run nahi rukta).
+- Master CSV ke columns: ID, Module, Sub-module, Group, Title, Priority, Preconditions, Steps, Expected Result, Automation, Regression, Last Updated.
+- **Run CSV** (`reports/<module>/<sub> test cases <date>_<time>.csv`) alag cheez hai: wo har run ke liye sirf unhi cases ki hoti hai jo us run mein chale.
+- CSV haath se edit mat karo.

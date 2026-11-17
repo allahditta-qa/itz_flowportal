@@ -1,0 +1,2 @@
+﻿"ID","Module","Sub-module","Group","Title","Priority","Preconditions","Steps","Expected Result","Automation","Regression","Last Updated"
+"TC_AUTH_01","auth","signout","Test cases","Login with valid email and valid password, click Sign out and check the login page opens","High","A valid account exists","1. Log in with valid details. 2. Click ""Sign out"".","The login page opens.","Yes","Yes","17-11-2026"

@@ -13,9 +13,10 @@ import path from 'path';
 import { exec } from 'child_process';
 // Test case ki details docs/test-cases/*.md se aati hain (CSV ke liye)
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { buildRows, toCsv } = require('../scripts/export-test-cases.js') as {
+const { buildRows, toCsv, checkMaster } = require('../scripts/export-test-cases.js') as {
   buildRows: (module: string, sub: string, tests: { id: string; title: string }[]) => string[][];
   toCsv: (rows: string[][]) => string;
+  checkMaster: () => string[];
 };
 
 interface Row {
@@ -91,6 +92,11 @@ export default class OfflineReporter implements Reporter {
   onBegin(_config: FullConfig, suite: Suite): void {
     this.startedAt = new Date();
     if (process.argv.includes('--list')) return; // sirf list dekhna hai, CSV nahi banani
+    // Master CSV (regression ke liye) docs se alag ho gayi ho to yaad dila do. Run nahi rukta.
+    try {
+      const stale = checkMaster();
+      if (stale.length) console.log(`\nNOTE: master test case CSV out of date (${stale.join(', ')}). Run: npm run cases:csv`);
+    } catch { /* check fail ho to ignore */ }
     const d = this.startedAt;
     const stamp = `${two(d.getDate())}-${two(d.getMonth() + 1)}-${d.getFullYear()}_${two(d.getHours())}-${two(d.getMinutes())}`;
 
