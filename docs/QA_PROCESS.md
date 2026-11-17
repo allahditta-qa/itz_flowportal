@@ -71,7 +71,7 @@ Final approval product owner / TPM ka hota hai. QA sirf recommendation deta hai.
 - **Docs chhote:** jo cheez automation ya generator se aati hai (counts, results) haath se mat likho.
 
 ## 7. Quality gates (commit se pehle, 10 second ka kaam)
-- [ ] `npm run typecheck` (TypeScript errors nahi)
+- [ ] `npm run check` (typecheck + lint + format check + cases:check) ek command mein
 - [ ] `npm run cases:check` (docs, master CSV, code ke test IDs ek jaise; duplicate ID nahi)
 - [ ] Sirf wahi module chala kar pass dekha jo badla
 

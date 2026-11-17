@@ -23,7 +23,9 @@ export class WorkspacePage extends BasePage {
     this.yourWorkLink = page.getByRole('link', { name: 'Your work' });
     this.signOutButton = page.getByRole('button', { name: 'Sign out' });
     // Status tabs ke button text "Name <count>" format mein hote hain
-    this.statusTabs = page.getByRole('button', { name: /^(All|Upcoming Projects|In Progress|QA Testing|In QA|QA Pause|QA Restart|Iteration Complete|Internal Testing|Production|Paused|Halted|Cancelled)\s*\d+$/ });
+    this.statusTabs = page.getByRole('button', {
+      name: /^(All|Upcoming Projects|In Progress|QA Testing|In QA|QA Pause|QA Restart|Iteration Complete|Internal Testing|Production|Paused|Halted|Cancelled)\s*\d+$/,
+    });
   }
 
   async open(): Promise<void> {

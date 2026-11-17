@@ -1,5 +1,6 @@
 // Workspace flow (read-only): header, status tabs, views, search, sidebar, navigation.
 import { test, expect } from '../../fixtures/test-fixtures';
+import { ROUTE } from '../../utils/constants';
 import { allStatuses, stableApp } from '../../test-data/apps';
 
 test.describe('Workspace', () => {
@@ -51,6 +52,6 @@ test.describe('Workspace', () => {
 
   test('TC_WS_07 - "Your work" opens my-work', async ({ page, workspacePage }) => {
     await workspacePage.yourWorkLink.click();
-    await expect(page).toHaveURL(/\/my-work/);
+    await expect(page).toHaveURL(ROUTE.myWork);
   });
 });

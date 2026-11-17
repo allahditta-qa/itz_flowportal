@@ -3,6 +3,8 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
+// TEST_ENV=staging set ho to pehle .env.staging load hota hai (dotenv purani value overwrite nahi karta), phir .env
+if (process.env.TEST_ENV) dotenv.config({ path: path.resolve(__dirname, '..', `.env.${process.env.TEST_ENV}`) });
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 export const ENV = {

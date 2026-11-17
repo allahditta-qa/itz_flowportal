@@ -48,7 +48,7 @@ Default criteria in `docs/QA_PROCESS.md`.
 | First visit with a dark computer theme not tested | Unknown default | Add one case and verify |
 
 ## 9. Deliverables
-Test case doc, `pages/ThemeSwitcher.ts`, CSV and reports in `reports/theme/`, sign-off in `docs/signoff/`.
+Test case doc, `components/ThemeSwitcher.ts`, CSV and reports in `reports/theme/`, sign-off in `docs/signoff/`.
 
 ## 10. Manual checklist (not automated)
 - [ ] Open Workspace, Project and My work pages in Dark and check text is readable.

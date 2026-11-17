@@ -10,6 +10,9 @@ Format: har entry mein **Date | Area | Learning | Kya karna hai**. Naye entries 
 
 | Date | Area | Learning | Action / Rule |
 |------|------|----------|---------------|
+| 2026-11-17 | Framework layers | Full automation structure: tests -> fixtures -> pages/components -> api/config/data/utils, plus reporting, process docs, quality gates (lint, format, typecheck, CI). ThemeSwitcher ab `components/` mein (reusable hissa, page nahi). Setup ab API login se (tez) | README "Framework structure (layers)" |
+| 2026-11-17 | Tooling versions | `typescript-eslint` abhi TypeScript 7 support nahi karta (peer <6.1), isliye TypeScript 6.0.x par rakha. ESLint 10 flat config + `defineConfig` | TypeScript 7 par upgrade tab karo jab typescript-eslint support de |
+| 2026-11-17 | Login API | `POST /api/auth/login` JSON `{email, password}` -> 200 + cookie `session_token`; `GET /api/auth/me` -> user profile (role, permissions) | `api/AuthApi.ts`; API tests next step |
 | 2026-11-17 | Audit | Framework audit mein mile: tsconfig nahi tha (type-check nahi hota tha), retries 1 + har test ki video/trace (slow aur flaky chhupata), har naya module config regex mein haath se, docs/code ke test IDs ka koi check nahi, regression ke liye master CSV se run ka tareeqa nahi, sign-off numbers haath se | Sab theek kiye: tsconfig + `typecheck`, retries 0, trace/video off, chromium project khud sab modules pakadta hai, `cases:check` traceability, `test:smoke`/`test:regression`, `module:new`, `signoff` |
 | 2026-11-17 | TypeScript 7 | `moduleResolution: node` TS 7 mein hat gaya (error TS5108) | tsconfig mein moduleResolution mat likho |
 | 2026-11-17 | Limits | GitHub CI nahi: app sirf local network (172.16.10.x) par hai, hosted runner reach nahi kar sakta | Self-hosted runner ya local runs; abhi manual + npm scripts |

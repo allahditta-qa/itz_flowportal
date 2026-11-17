@@ -12,7 +12,6 @@ import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
 // Test case ki details docs/test-cases/*.md se aati hain (CSV ke liye)
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { buildRows, toCsv, checkMaster } = require('../scripts/export-test-cases.js') as {
   buildRows: (module: string, sub: string, tests: { id: string; title: string }[]) => string[][];
   toCsv: (rows: string[][]) => string;
@@ -52,8 +51,14 @@ interface Entry {
   skipped: number;
 }
 
+/* eslint-disable no-control-regex -- ANSI colour codes (\u001b) hatane ke liye jaan-boojh kar */
 const esc = (s: string) =>
-  s.replace(/\u001b\[[0-9;]*m/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s
+    .replace(/\u001b\[[0-9;]*m/g, '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+/* eslint-enable no-control-regex */
 
 const pretty = (s: string) => s.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 const two = (n: number) => String(n).padStart(2, '0');
@@ -96,8 +101,11 @@ export default class OfflineReporter implements Reporter {
     // Master CSV (regression ke liye) docs se alag ho gayi ho to yaad dila do. Run nahi rukta.
     try {
       const stale = checkMaster();
-      if (stale.length) console.log(`\nNOTE: master test case CSV out of date (${stale.join(', ')}). Run: npm run cases:csv`);
-    } catch { /* check fail ho to ignore */ }
+      if (stale.length)
+        console.log(`\nNOTE: master test case CSV out of date (${stale.join(', ')}). Run: npm run cases:csv`);
+    } catch {
+      /* check fail ho to ignore */
+    }
     const d = this.startedAt;
     const stamp = `${two(d.getDate())}-${two(d.getMonth() + 1)}-${d.getFullYear()}_${two(d.getHours())}-${two(d.getMinutes())}`;
 
@@ -117,7 +125,8 @@ export default class OfflineReporter implements Reporter {
       fs.mkdirSync(dir, { recursive: true });
       // Naam: "<sub> test DD-MM-YYYY_HH-mm". Usi minute mein dobara run ho to seconds jod dete hain (overwrite nahi hota)
       let base = `${p.sub.replace(/[-_]/g, ' ')} test ${stamp}`;
-      if (fs.existsSync(path.join(dir, `${base}.html`)) || fs.existsSync(path.join(dir, this.csvName(base)))) base += `-${two(d.getSeconds())}`;
+      if (fs.existsSync(path.join(dir, `${base}.html`)) || fs.existsSync(path.join(dir, this.csvName(base))))
+        base += `-${two(d.getSeconds())}`;
       this.bases.set(key, base);
       try {
         fs.writeFileSync(path.join(dir, this.csvName(base)), toCsv(buildRows(p.module, p.sub, p.tests)), 'utf8');
@@ -177,10 +186,16 @@ export default class OfflineReporter implements Reporter {
 
     const historyFile = path.join(this.reportsDir, 'history.json');
     let history: Entry[] = [];
-    try { history = JSON.parse(fs.readFileSync(historyFile, 'utf8')); } catch { /* pehli baar */ }
+    try {
+      history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+    } catch {
+      /* pehli baar */
+    }
 
     const written: string[] = [];
-    for (const g of [...this.groups.values()].sort((a, b) => `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`))) {
+    for (const g of [...this.groups.values()].sort((a, b) =>
+      `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`),
+    )) {
       const rows = [...g.rows.values()].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
       const dir = path.join(this.reportsDir, g.module);
       fs.mkdirSync(dir, { recursive: true });
@@ -216,7 +231,9 @@ export default class OfflineReporter implements Reporter {
     // Ek hi module chala ho to seedha uski report kholo, warna index
     const toOpen = written.length === 1 ? written[0] : indexFile;
     if (this.autoOpen) {
-      exec(`start "" "${toOpen}"`, (err) => { if (err) console.log('Report auto-open failed:', err.message); });
+      exec(`start "" "${toOpen}"`, (err) => {
+        if (err) console.log('Report auto-open failed:', err.message);
+      });
     }
   }
 
@@ -227,7 +244,10 @@ export default class OfflineReporter implements Reporter {
       .map((r) => {
         const cls = r.status === 'passed' ? 'pass' : r.status === 'skipped' ? 'skip' : 'fail';
         const imgs = r.shots
-          .map((x) => `<figure><img src="${x.src}" alt="${esc(x.name)}" onclick="this.classList.toggle('big')"><figcaption>${esc(x.name)}</figcaption></figure>`)
+          .map(
+            (x) =>
+              `<figure><img src="${x.src}" alt="${esc(x.name)}" onclick="this.classList.toggle('big')"><figcaption>${esc(x.name)}</figcaption></figure>`,
+          )
           .join('');
         return `<section class="card ${cls}">
   <div class="head"><span class="badge ${cls}">${esc(r.status)}</span><b>${esc(r.title)}</b>
@@ -255,7 +275,8 @@ ${cards}
     const kept = history.filter((e) => fs.existsSync(path.join(this.reportsDir, e.file)));
     const known = new Set(kept.map((e) => e.file));
     const nameRe = /^(.*) test (\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})(?:-(\d{2}))?\.html$/;
-    const sumRe = /<div class="sum"><div><b>(\d+)<\/b>total<\/div><div><b class="pass-t">(\d+)<\/b>passed<\/div><div><b class="fail-t">(\d+)<\/b>failed<\/div><div><b class="skip-t">(\d+)<\/b>skipped/;
+    const sumRe =
+      /<div class="sum"><div><b>(\d+)<\/b>total<\/div><div><b class="pass-t">(\d+)<\/b>passed<\/div><div><b class="fail-t">(\d+)<\/b>failed<\/div><div><b class="skip-t">(\d+)<\/b>skipped/;
     for (const module of fs.existsSync(this.reportsDir) ? fs.readdirSync(this.reportsDir) : []) {
       const dir = path.join(this.reportsDir, module);
       if (!fs.statSync(dir).isDirectory()) continue;
@@ -269,7 +290,9 @@ ${cards}
           module,
           sub: sub.replace(/ /g, '-'),
           file,
-          csv: fs.existsSync(path.join(dir, this.csvName(name.replace(/\.html$/, '')))) ? `${module}/${this.csvName(name.replace(/\.html$/, ''))}` : undefined,
+          csv: fs.existsSync(path.join(dir, this.csvName(name.replace(/\.html$/, ''))))
+            ? `${module}/${this.csvName(name.replace(/\.html$/, ''))}`
+            : undefined,
           ts: `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss ?? '00'}`,
           date: `${dd}-${mm}-${yyyy}`,
           time: `${hh}:${mi}`,
@@ -306,7 +329,9 @@ ${cards}
       const rows = list
         .sort((a, b) => `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`))
         .map(
-          (e) => `<tr><td>${esc(pretty(e.module))}</td><td><a href="${esc(encodeURI(e.file))}">${esc(pretty(e.sub))}</a></td><td>${e.total}</td>
+          (
+            e,
+          ) => `<tr><td>${esc(pretty(e.module))}</td><td><a href="${esc(encodeURI(e.file))}">${esc(pretty(e.sub))}</a></td><td>${e.total}</td>
 <td class="pass-t">${e.passed}</td><td class="${e.failed ? 'fail-t' : ''}">${e.failed}</td><td class="skip-t">${e.skipped}</td>
 <td class="${e.failed ? 'fail-t' : 'pass-t'}">${e.failed ? 'Failed' : 'Passed'}</td><td>${e.csv ? `<a href="${esc(encodeURI(e.csv))}">CSV</a>` : ''}</td></tr>`,
         )

@@ -9,7 +9,13 @@ export const invalidUser = unknownUser;
 export const malformedEmail = 'not-an-email';
 
 // Galat format wali emails: form submit hi nahi hona chahiye
-export const malformedEmails = ['plainaddress', '@theitzon.com', 'user@', 'user name@theitzon.com', 'user@@theitzon.com'];
+export const malformedEmails = [
+  'plainaddress',
+  '@theitzon.com',
+  'user@',
+  'user name@theitzon.com',
+  'user@@theitzon.com',
+];
 
 // Security payloads (sirf unknown email ke saath, kabhi login nahi hona chahiye)
 export const sqlInjection = "' OR '1'='1' --";

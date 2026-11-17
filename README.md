@@ -18,25 +18,43 @@ Har module isi lifecycle se guzarta hai (detail: [docs/QA_PROCESS.md](docs/QA_PR
 | Module tracker aur status | [PLAN.md](PLAN.md) |
 | Seekhi hui baatein (app ka behaviour, gotchas) | [GUIDELINES.md](GUIDELINES.md) |
 
-## 2. Framework structure
+## 2. Framework structure (layers)
+
+```
+Tests (tests/<module>/<sub>.spec.ts)        "kya check karna hai" (sirf steps + assertions, koi locator nahi)
+   │  use
+Fixtures (fixtures/test-fixtures.ts)        ready objects: loginPage, workspacePage, theme, authApi ...
+   │  use
+Pages (pages/) + Components (components/)   UI ka model: locators + actions. Page = poora page, Component = reusable hissa (ThemeSwitcher)
+API layer (api/)                            REST wrappers (AuthApi): tez setup aur API tests
+Config / Data / Utils                       config/env.ts (multi-env), test-data/, utils/constants.ts
+Playwright (playwright.config.ts)           projects: setup, auth (bina session), chromium (saved session)
+Reporting (reporters/, scripts/, reports/)  module-wise report, run CSV, history, master CSV, sign-off generator
+Process (docs/)                             QA_PROCESS, test plans, test cases, defects, sign-off, templates
+Quality gates (CI, lint, typecheck)         .github/workflows/ci.yml, eslint.config.mjs, .prettierrc.json, tsconfig.json
+```
 
 ```
 ITZ Flow/
-├── config/env.ts                  .env se URL, workspace id, email, password
-├── pages/                         Page Objects (POM): locators + actions, sirf yahan
-├── fixtures/test-fixtures.ts      tests ko ready page objects deta hai
-├── test-data/                     test data (users, stable app naam)
+├── api/                           AuthApi (login, me)
+├── components/                    ThemeSwitcher (reusable UI component)
+├── config/env.ts                  .env / .env.<TEST_ENV> se URL, workspace id, email, password
+├── fixtures/test-fixtures.ts      tests ko ready objects
+├── pages/                         Page Objects (POM): BasePage, LoginPage, WorkspacePage, ProjectPage, MyWorkPage
+├── test-data/                     users, stable app naam
+├── utils/constants.ts             LOGGED_OUT, ROUTE patterns
 ├── tests/<module>/<sub>.spec.ts   test cases (auth, workspace, project, my-work, theme)
-├── tests/setup/auth.setup.ts      login ek baar, session save (.auth/, gitignored)
-├── reporters/offline-report.ts    har run ki module-wise HTML report + run se pehle CSV + history
-├── scripts/export-test-cases.js   test case CSV (master + per run)
-├── docs/                          process, plans, test cases, defects, sign-off, templates
+├── tests/setup/auth.setup.ts      API login, session save (.auth/, gitignored)
+├── reporters/offline-report.ts    module-wise HTML report + run se pehle CSV + history
+├── scripts/                       export-test-cases (CSV, traceability), run-regression, new-module, signoff
+├── docs/                          process, plans, test cases (md + master csv), defects, sign-off, templates
 ├── reports/                       (gitignored) reports/<module>/..., index.html, history.json
-├── playwright.config.ts           projects: setup, auth (bina session), chromium (saved session)
-└── CLAUDE.md                      project ke rules (Claude ke liye)
+├── .github/workflows/ci.yml       CI: typecheck, lint, format, cases:check, --list (+ manual smoke on self-hosted runner)
+└── CLAUDE.md, PLAN.md, GUIDELINES.md
 ```
 
-UI badle to sirf `pages/` update hoti hai, tests nahi.
+**Rules:** locators sirf pages/components mein; tests mein logic kam; shared cheezein utils/constants mein; UI badle to sirf pages/components update.
+**Multi-environment:** `TEST_ENV=staging` set karo to `.env.staging` pehle load hota hai (phir `.env`).
 
 ## 3. Setup
 1. `npm install` aur `npx playwright install chromium`
@@ -57,6 +75,8 @@ UI badle to sirf `pages/` update hoti hai, tests nahi.
 | Master CSV update (test case badalne ke baad) | `npm run cases:csv` |
 | Docs / CSV / code ke test IDs ka check (traceability) | `npm run cases:check` |
 | TypeScript check | `npm run typecheck` |
+| Lint / format | `npm run lint`, `npm run format`, `npm run format:check` |
+| **Sab quality gates ek saath** | `npm run check` |
 | Naya module scaffold | `npm run module:new -- <module> [sub]` |
 | Sign-off draft (numbers khud) | `npm run signoff -- <module>` |
 | Reports ki history kholna | `npm run reports` |

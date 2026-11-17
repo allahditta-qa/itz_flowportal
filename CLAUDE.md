@@ -8,7 +8,7 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 - Naya module ya sub-module shuru karne se pehle: explore karo, `docs/test-plans/<module>.md` likho (template `docs/templates/`), phir test cases doc (simple English, standard format), phir automation, phir run, defects/observations (`docs/defects/<module>.md`), aakhir mein sign-off (`docs/signoff/<module> signoff <DD-MM-YYYY>.md`). Shortcut nahi.
 - Test case badle ya naya aaye to master CSV update: `npm run cases:csv` (aur `npm run cases:check`). Master CSV `docs/test-cases/<module>-<sub>.csv` regression ke liye hai, sirf test case badalne par update hoti hai.
 - **Kaam tez karo (user ki requirement):** repeat kaam tools se: `npm run module:new -- <module> [sub]` (scaffold), `npm run signoff -- <module>` (sign-off draft + evidence), `npm run test:smoke` / `test:regression` (master CSV se). Time-box: ek baar explore, ~15-25 cases per sub-module, ek run, ek fix cycle. Perfection ke bajaye jaldi sign-off, gaps likh do. Detail: `docs/QA_PROCESS.md` section 6.
-- **Quality gates (commit se pehle):** `npm run typecheck` aur `npm run cases:check`.
+- **Quality gates (commit se pehle):** `npm run check` (typecheck + lint + format:check + cases:check). CI (`.github/workflows/ci.yml`) yehi chalata hai. Code format: `npm run format`.
 - Sign-off ka faisla recommendation hota hai (Signed off / Conditional / Not signed off); final approval product owner / TPM ka.
 
 ## App under test
@@ -19,7 +19,7 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 
 ## Structure
 - `config/env.ts` - `.env` se BASE_URL, WORKSPACE_ID, ITZ_EMAIL, ITZ_PASSWORD (`ENV.hasCredentials`)
-- `pages/` - Page Objects (BasePage, LoginPage, WorkspacePage). Locators aur actions sirf yahan
+- `pages/` - Page Objects (BasePage, LoginPage, WorkspacePage...). Locators aur actions sirf yahan; `components/` - reusable UI hisse (ThemeSwitcher); `api/` - REST wrappers (AuthApi); `utils/constants.ts` - shared constants (LOGGED_OUT, ROUTE)
 - `fixtures/test-fixtures.ts` - tests ko ready page objects (`loginPage`, `workspacePage`) deta hai
 - `test-data/users.ts` - validUser, invalidUser, malformedEmail
 - `tests/<feature>/<feature>.spec.ts` - test cases feature-wise: `auth/` (login, signout; bina session), `workspace/`, `project/`, `my-work/` (saved session), `setup/auth.setup.ts` (login ek baar). Naming: `TC_<FEATURE>_NN - description`. Naya module = naya folder (`npm run module:new`), `playwright.config.ts` badalni nahi padti (chromium project `auth` aur `setup` ke ilawa sab folders khud pakadta hai)
@@ -37,7 +37,7 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 7. Naya feature add karne par README aur plan doc update karo.
 
 ## Commands
-- `npm run typecheck` - TypeScript check; `npm run cases:check` - docs/CSV/code ke test IDs ka traceability check
+- `npm run check` - sab quality gates; `npm run typecheck` - TypeScript check; `npm run lint` / `npm run format`; `npm run cases:check` - docs/CSV/code ke test IDs ka traceability check
 - `npm run test:smoke` - sirf High priority (master CSV se); `npm run test:regression` - sab Regression cases
 - `npm run module:new -- <module> [sub]` - naya module scaffold; `npm run signoff -- <module>` - sign-off draft
 - `npm run cases:csv` - master CSV update (test case badalne ke baad)

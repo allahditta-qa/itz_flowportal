@@ -1,0 +1,48 @@
+# CI: har push aur pull request par code quality gates chalte hain (app ki zaroorat nahi).
+# App sirf local network (172.16.10.x) par hai, isliye asal tests GitHub ke hosted runner par nahi chal sakte.
+# Smoke tests ke liye ek "self-hosted" runner (label: itzflow) us network ke andar chahiye, tab "Run workflow" se chalao.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run cases:check
+      - run: npx playwright test --list
+
+  smoke:
+    if: github.event_name == 'workflow_dispatch'
+    needs: quality
+    runs-on: [self-hosted, itzflow]
+    env:
+      ITZ_EMAIL: ${{ secrets.ITZ_EMAIL }}
+      ITZ_PASSWORD: ${{ secrets.ITZ_PASSWORD }}
+      OFFLINE_REPORT_OPEN: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run test:smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: reports/

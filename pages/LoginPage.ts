@@ -73,6 +73,7 @@ export class LoginPage extends BasePage {
   // Form submit ke baad confirm karo ke koi login request server ko gayi hi nahi (client-side validation)
   async expectNoLoginRequest(): Promise<void> {
     // "Kuch nahi hua" verify karne ke liye thora sa wait zaroori hai
+    // eslint-disable-next-line playwright/no-wait-for-timeout -- absence verify karne ka koi event nahi hota
     await this.page.waitForTimeout(700);
     expect(this.loginRequests).toHaveLength(0);
     await expect(this.page).toHaveURL(/\/login/);
