@@ -10,6 +10,9 @@ Format: har entry mein **Date | Area | Learning | Kya karna hai**. Naye entries 
 
 | Date | Area | Learning | Action / Rule |
 |------|------|----------|---------------|
+| 2026-11-17 | Audit | Framework audit mein mile: tsconfig nahi tha (type-check nahi hota tha), retries 1 + har test ki video/trace (slow aur flaky chhupata), har naya module config regex mein haath se, docs/code ke test IDs ka koi check nahi, regression ke liye master CSV se run ka tareeqa nahi, sign-off numbers haath se | Sab theek kiye: tsconfig + `typecheck`, retries 0, trace/video off, chromium project khud sab modules pakadta hai, `cases:check` traceability, `test:smoke`/`test:regression`, `module:new`, `signoff` |
+| 2026-11-17 | TypeScript 7 | `moduleResolution: node` TS 7 mein hat gaya (error TS5108) | tsconfig mein moduleResolution mat likho |
+| 2026-11-17 | Limits | GitHub CI nahi: app sirf local network (172.16.10.x) par hai, hosted runner reach nahi kar sakta | Self-hosted runner ya local runs; abhi manual + npm scripts |
 | 2026-11-17 | QA process | User ne kaha: har kaam module-wise, Senior SQA/SDET ki tarah, framework se sign-off report tak. Master CSV (regression ke liye) alag file, sirf test case badalne par update | Process `docs/QA_PROCESS.md`, tracker `PLAN.md`, master CSV `npm run cases:csv` |
 | 2026-11-17 | Autofill risk | Email field mein script `fill()` se "does not look like an email" error aata hai aur login nahi hota; asli typing se chalta hai. Paste ya password manager par bhi aisa ho sakta hai | `OBS_AUTH_01`: haath se paste/autofill check karna hai (`docs/defects/auth.md`) |
 | 2026-11-17 | Test case CSV | Run shuru hote hi (reporter `onBegin`) jo test cases chalne wale hain unki CSV module-wise `reports/<module>/<sub> test cases <date>_<time>.csv` mein banti hai; sirf chune hue cases (`-g` filter ke baad). Details docs ke tables se. `--list` par nahi banti | Naye test ka doc pehle likho, warna CSV mein "Not documented yet" aata hai |

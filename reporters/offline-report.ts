@@ -41,6 +41,7 @@ interface Entry {
   module: string;
   sub: string;
   csv?: string; // is run ke test cases ki CSV (reports folder se relative path)
+  results?: Record<string, string>; // test case ID -> status (passed, failed, skipped...)
   file: string; // reports folder se relative path (e.g. theme/theme test 17-11-2026_03-05.html)
   ts: string; // ISO time (sorting ke liye)
   date: string; // DD-MM-YYYY
@@ -192,6 +193,7 @@ export default class OfflineReporter implements Reporter {
         sub: g.sub,
         file: `${g.module}/${name}`,
         csv: this.csvFiles.get(`${g.module}/${g.sub}`),
+        results: Object.fromEntries(rows.filter((r) => r.id).map((r) => [r.id, r.status])),
         ts: d.toISOString(),
         date,
         time: `${two(d.getHours())}:${two(d.getMinutes())}`,

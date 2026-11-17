@@ -12,7 +12,7 @@ ITZ Flow (`http://172.16.10.2:8300`, project-management app: workspace, projects
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Auth | Login | Done | 33 | 33 (5 opt-in) | 28 pass, 5 not run (17-11-2026) | 4 obs | **Conditional** (17-11-2026) |
 | Auth | Sign out | Done | 1 | 1 | 1 pass (17-11-2026) | - | Part of Auth |
-| Theme | Theme | Done | 16 | 16 | 16 pass (17-11-2026) | none | **Signed off** (17-11-2026) |
+| Theme | Theme | Done | 16 | 16 | 16 pass (17-11-2026) | none | **Conditional** (manual dark-mode check pending) |
 | Workspace | Workspace | Not started | not in new format | 7 old specs | not re-run | - | - |
 | Project | Project page | Not started | not in new format | 5 old specs | not re-run | - | - |
 | My work | My work | Not started | not in new format | 1 old spec | not re-run | - | - |
@@ -43,7 +43,7 @@ Test cases docs aur master CSV: `docs/test-cases/` (`auth-login`, `auth-signout`
 
 ## 6. Handoff checklist (session khatam karne se pehle)
 - [ ] Tests chalaye, reports aur CSV check ki (`reports/index.html`)
-- [ ] Test case badla ho to `npm run cases:csv`, phir `npm run cases:check`
+- [ ] `npm run typecheck` aur `npm run cases:check` (test case badla ho to pehle `npm run cases:csv`)
 - [ ] Defects/observations `docs/defects/<module>.md` mein
 - [ ] Sign-off report (module complete ho to)
 - [ ] Is file ka tracker, `CLAUDE.md` status, `GUIDELINES.md` update

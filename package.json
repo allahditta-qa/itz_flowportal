@@ -16,7 +16,12 @@
     "test:my-work": "playwright test tests/my-work",
     "reports": "start \"\" reports\\index.html",
     "cases:csv": "node scripts/export-test-cases.js",
-    "cases:check": "node scripts/export-test-cases.js --check"
+    "cases:check": "node scripts/export-test-cases.js --check",
+    "typecheck": "tsc --noEmit -p .",
+    "test:smoke": "node scripts/run-regression.js --priority High",
+    "test:regression": "node scripts/run-regression.js",
+    "module:new": "node scripts/new-module.js",
+    "signoff": "node scripts/signoff.js"
   },
   "keywords": [],
   "author": "",

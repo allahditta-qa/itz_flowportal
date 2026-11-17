@@ -146,16 +146,52 @@ function checkMaster() {
   return stale;
 }
 
-module.exports = { buildRows, toCsv, exportMaster, checkMaster };
+// ───────────── TRACEABILITY: docs ke test case ID <-> spec files ke test title ─────────────
+// docs mein ID hai par code mein nahi  -> ERROR (test likhna reh gaya)
+// code mein test hai par doc mein nahi -> WARNING (undocumented)
+// ek ID do baar                        -> ERROR (duplicate)
+function traceability() {
+  const root = path.resolve(__dirname, '..', 'tests');
+  const exact = new Map(); // id -> count
+  const prefixes = []; // TC_X_16.${i + 1} jaise data-driven IDs ka prefix
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const f = path.join(dir, e.name);
+      if (e.isDirectory()) { if (e.name !== 'setup') walk(f); continue; }
+      if (!e.name.endsWith('.spec.ts')) continue;
+      for (const line of fs.readFileSync(f, 'utf8').split(/\r?\n/)) {
+        const m = line.match(/^\s*test(?:\.\w+)?\(\s*[`'"](TC_[A-Z0-9]+_\d+(?:\.\d+|\.\$\{[^}]*\})?)/);
+        if (!m) continue;
+        if (m[1].includes('${')) prefixes.push(m[1].split('${')[0]);
+        else exact.set(m[1], (exact.get(m[1]) || 0) + 1);
+      }
+    }
+  };
+  if (fs.existsSync(root)) walk(root);
+  const docIds = new Set();
+  for (const d of listDocs()) for (const r of d.rows) docIds.add(r[0]);
+  const inSpec = (id) => exact.has(id) || prefixes.some((p) => id.startsWith(p));
+  return {
+    missingInSpec: [...docIds].filter((id) => !inSpec(id)),
+    undocumented: [...exact.keys()].filter((id) => !docIds.has(id)),
+    duplicates: [...exact.entries()].filter(([, n]) => n > 1).map(([id]) => id),
+  };
+}
+
+module.exports = { buildRows, toCsv, exportMaster, checkMaster, traceability, parseCsv };
 
 if (require.main === module) {
   if (process.argv.includes('--check')) {
+    let bad = false;
     const stale = checkMaster();
-    if (stale.length) {
-      console.log(`Master CSV out of date: ${stale.join(', ')}  ->  run: npm run cases:csv`);
-      process.exit(1);
-    }
-    console.log('Master CSV files are up to date with docs/test-cases.');
+    if (stale.length) { console.log(`ERROR master CSV out of date: ${stale.join(', ')}  ->  run: npm run cases:csv`); bad = true; }
+    else console.log('OK   master CSV files match docs/test-cases.');
+    const t = traceability();
+    if (t.missingInSpec.length) { console.log(`ERROR in docs but no test in code: ${t.missingInSpec.join(', ')}`); bad = true; }
+    if (t.duplicates.length) { console.log(`ERROR duplicate test IDs in code: ${t.duplicates.join(', ')}`); bad = true; }
+    if (t.undocumented.length) console.log(`WARN  tests without a doc entry (${t.undocumented.length}): ${t.undocumented.join(', ')}`);
+    if (!bad) console.log('OK   every documented case has a test, no duplicate IDs.');
+    process.exit(bad ? 1 : 0);
   } else {
     for (const s of exportMaster()) {
       console.log(`${s.file}: ${s.total} cases (new ${s.added}, changed ${s.changed}, removed ${s.removed})`);

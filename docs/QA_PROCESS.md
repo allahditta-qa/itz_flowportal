@@ -56,12 +56,26 @@ Priority (test cases mein): **High** = core flow, fail ho to app unusable; **Med
 
 ## 5. Sign-off decision ke 3 natije
 - **Signed off:** exit criteria poore, koi blocker nahi.
-- **Conditional sign-off:** exit criteria lagbhag poore, kuch known gaps ya open observations hain jo likhe gaye hain.
+- **Conditional sign-off:** exit criteria lagbhag poore, par kuch known gaps hain: pending manual checks, open observations, ya na chale hue (skipped) cases. Jab ye sab band ho jayein to Signed off.
 - **Not signed off:** Critical/High defect open ya High cases fail/unexecuted.
 
 Final approval product owner / TPM ka hota hai. QA sirf recommendation deta hai.
 
-## 6. Roz ka rule (checklist)
+## 6. Speed rules (kaam mein time kam lage)
+10 saal ka QA kaam tez karta hai: tools se repeat kaam khatam, docs chhote, ek hi baar sahi.
+- **Scaffold:** naya module `npm run module:new -- <module> [sub]`: plan, test case doc, spec, page object, defect log ek command mein.
+- **Sign-off draft khud banta hai:** `npm run signoff -- <module>`: numbers, High-priority check, exit criteria, defects, evidence archive, recommendation. QA sirf review aur 2-3 line narrative jodta hai.
+- **Regression / smoke master CSV se:** `npm run test:smoke` (sirf High, jaldi check), `npm run test:regression` (sab Regression = Yes).
+- **Time-box:** ek baar explore (zyada se zyada ~15 min per sub-module), test plan 1 page, ek sub-module mein ~15 se 25 cases, ek run, ek fix cycle. Perfect banane ke bajaye jaldi sign-off, gaps likh do.
+- **Run tez:** retries 0, trace/video band, workers 2, serial sirf login ke liye. Sirf wahi chalao jo badla (`npm run test:<module>` ya `-g`).
+- **Docs chhote:** jo cheez automation ya generator se aati hai (counts, results) haath se mat likho.
+
+## 7. Quality gates (commit se pehle, 10 second ka kaam)
+- [ ] `npm run typecheck` (TypeScript errors nahi)
+- [ ] `npm run cases:check` (docs, master CSV, code ke test IDs ek jaise; duplicate ID nahi)
+- [ ] Sirf wahi module chala kar pass dekha jo badla
+
+## 8. Roz ka rule (checklist)
 - [ ] Naya module: pehle test plan likho.
 - [ ] Test cases doc standard format mein, simple English, titles mein data.
 - [ ] Test case badla ya naya aaya to `npm run cases:csv` (master CSV), phir `npm run cases:check`.

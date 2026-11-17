@@ -7,6 +7,8 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 - Tum is project mein **Senior SQA / SDET (10+ years, manual + automation, multi-domain)** ki tarah kaam karte ho. Har kaam **module-wise** aur proper structure ke saath: Framework -> Analysis -> Test Plan -> Test Cases -> Automation -> Execution (CSV + report) -> Defects -> Sign-off report. Poora process: `docs/QA_PROCESS.md`, module tracker: `PLAN.md`.
 - Naya module ya sub-module shuru karne se pehle: explore karo, `docs/test-plans/<module>.md` likho (template `docs/templates/`), phir test cases doc (simple English, standard format), phir automation, phir run, defects/observations (`docs/defects/<module>.md`), aakhir mein sign-off (`docs/signoff/<module> signoff <DD-MM-YYYY>.md`). Shortcut nahi.
 - Test case badle ya naya aaye to master CSV update: `npm run cases:csv` (aur `npm run cases:check`). Master CSV `docs/test-cases/<module>-<sub>.csv` regression ke liye hai, sirf test case badalne par update hoti hai.
+- **Kaam tez karo (user ki requirement):** repeat kaam tools se: `npm run module:new -- <module> [sub]` (scaffold), `npm run signoff -- <module>` (sign-off draft + evidence), `npm run test:smoke` / `test:regression` (master CSV se). Time-box: ek baar explore, ~15-25 cases per sub-module, ek run, ek fix cycle. Perfection ke bajaye jaldi sign-off, gaps likh do. Detail: `docs/QA_PROCESS.md` section 6.
+- **Quality gates (commit se pehle):** `npm run typecheck` aur `npm run cases:check`.
 - Sign-off ka faisla recommendation hota hai (Signed off / Conditional / Not signed off); final approval product owner / TPM ka.
 
 ## App under test
@@ -20,7 +22,7 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 - `pages/` - Page Objects (BasePage, LoginPage, WorkspacePage). Locators aur actions sirf yahan
 - `fixtures/test-fixtures.ts` - tests ko ready page objects (`loginPage`, `workspacePage`) deta hai
 - `test-data/users.ts` - validUser, invalidUser, malformedEmail
-- `tests/<feature>/<feature>.spec.ts` - test cases feature-wise: `auth/` (login, signout; bina session), `workspace/`, `project/`, `my-work/` (saved session), `setup/auth.setup.ts` (login ek baar). Naming: `TC_<FEATURE>_NN - description`. Naya feature = naya folder + file, aur `playwright.config.ts` ke `chromium` project `testMatch` mein add
+- `tests/<feature>/<feature>.spec.ts` - test cases feature-wise: `auth/` (login, signout; bina session), `workspace/`, `project/`, `my-work/` (saved session), `setup/auth.setup.ts` (login ek baar). Naming: `TC_<FEATURE>_NN - description`. Naya module = naya folder (`npm run module:new`), `playwright.config.ts` badalni nahi padti (chromium project `auth` aur `setup` ke ilawa sab folders khud pakadta hai)
 - `utils/` - helpers (abhi khali)
 - `PLAN.md` - module tracker aur status; `GUIDELINES.md` - learnings notebook
 - `docs/` - `QA_PROCESS.md`, `TEST_CASE_STANDARD.md`, `test-plans/`, `test-cases/` (md + master csv), `defects/`, `signoff/`, `templates/`
@@ -35,7 +37,11 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 7. Naya feature add karne par README aur plan doc update karo.
 
 ## Commands
-- `npm test` - headless run (config: 1 retry, parallel)
+- `npm run typecheck` - TypeScript check; `npm run cases:check` - docs/CSV/code ke test IDs ka traceability check
+- `npm run test:smoke` - sirf High priority (master CSV se); `npm run test:regression` - sab Regression cases
+- `npm run module:new -- <module> [sub]` - naya module scaffold; `npm run signoff -- <module>` - sign-off draft
+- `npm run cases:csv` - master CSV update (test case badalne ke baad)
+- `npm test` - headless run (retries 0, workers 2)
 - `npm run test:headed` - browser dikhe
 - `npm run report` - HTML report
 - `npx playwright test tests/auth/login.spec.ts` - single file
@@ -52,7 +58,7 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 
 ## Status (17-11-2026)
 - Auth/Login: 33 cases, 28 pass, 5 opt-in (lockout risk) not run. Auth/Sign out: 1 pass. Auth sign-off: **Conditional** (`docs/signoff/auth signoff 17-11-2026.md`, obs `docs/defects/auth.md`).
-- Theme: 16/16 pass, sign-off **Signed off** (`docs/signoff/theme signoff 17-11-2026.md`).
+- Theme: 16/16 pass, sign-off **Conditional** (dark-mode manual visual check pending, `docs/signoff/theme signoff 17-11-2026.md`).
 - Workspace, Project, My work: purane specs hain (process se pehle bane), module shuru hone par plan -> doc -> naye titles se dobara standard mein lana hai.
 - Credentials `.env` mein set hain; login ke liye `fill()` nahi, `pressSequentially` (GUIDELINES.md). Sab tests read-only: app live hai.
 - Next: user se agla module poochna (Workspace / Project / My work), Auth ke open items `PLAN.md` mein.

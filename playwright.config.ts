@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 2,                    // zyada parallel logins se server slow ho jata hai
   expect: { timeout: 7_000 },    // assertion max 7 sec wait kare
   fullyParallel: true,           // tests saath saath chalen
-  retries: 1,                    // fail ho to 1 baar dobara try
+  retries: 0,                    // retry nahi: live app par retry flaky/lockout chhupa deta hai, aur run slow hota hai
   reporter: [
     ['list'],                                                   // terminal
     ['html', { open: 'never' }],                                // online report (playwright-report/, server se khulti hai)
@@ -16,9 +16,9 @@ export default defineConfig({
   ],
   use: {
     baseURL: ENV.baseURL,        // page.goto('/login') = BASE_URL + /login
-    trace: 'retain-on-failure',  // fail pe debug trace save
+    trace: 'off',                // trace/video band (run tez). Debug ke liye: npx playwright test -g "TC_X" --trace on
     screenshot: 'on',            // har test ka screenshot report mein
-    video: 'retain-on-failure',
+    video: 'off',
     // SLOWMO=300 set karo to har step 300ms ruk kar chalta hai (headed mein dekhne ke liye)
     launchOptions: { slowMo: Number(process.env.SLOWMO ?? 0) },
   },
@@ -34,7 +34,8 @@ export default defineConfig({
     // 3) Baqi feature folders (workspace, project, my-work ...): saved session ke saath, read-only
     {
       name: 'chromium',
-      testMatch: /(workspace|project|my-work|theme)\/.*\.spec\.ts/,
+      testMatch: /.*\.spec\.ts/,
+      testIgnore: /(auth|setup)\//, // baqi sab modules (naya module add karne par config nahi badalni)
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, storageState: '.auth/user.json' },
     },

@@ -52,8 +52,13 @@ UI badle to sirf `pages/` update hoti hai, tests nahi.
 | Ek module | `npm run test:login`, `test:signout`, `test:theme`, `test:workspace`, `test:project`, `test:my-work`, `test:auth` |
 | Ek test, naam se | `npx playwright test -g "TC_THEME_04" --headed` |
 | Slow motion (dekhne ke liye) | PowerShell: `$env:SLOWMO=250; npm run test:headed` |
+| **Smoke** (sirf High priority, master CSV se) | `npm run test:smoke` |
+| **Regression** (sab Regression cases) | `npm run test:regression` |
 | Master CSV update (test case badalne ke baad) | `npm run cases:csv` |
-| Master CSV theek hai ya nahi | `npm run cases:check` |
+| Docs / CSV / code ke test IDs ka check (traceability) | `npm run cases:check` |
+| TypeScript check | `npm run typecheck` |
+| Naya module scaffold | `npm run module:new -- <module> [sub]` |
+| Sign-off draft (numbers khud) | `npm run signoff -- <module>` |
 | Reports ki history kholna | `npm run reports` |
 
 VS Code mein: Terminal > Run Task > "Test: ..." bhi hai. Extension ke play button se report banne ki guarantee nahi.
@@ -70,11 +75,11 @@ VS Code mein: Terminal > Run Task > "Test: ..." bhi hai. Extension ke play butto
 - Login mein email `fill()` se nahi, asli typing (`pressSequentially`) se.
 - Credentials sirf `.env` mein.
 
-## 7. Naya module add karna
-1. Module explore karo, `GUIDELINES.md` mein notes.
-2. `docs/test-plans/<module>.md` ([template](docs/templates/test-plan.md)).
-3. `docs/test-cases/<module>-<sub>.md` (standard format), phir `npm run cases:csv`.
-4. Page object (`pages/`), fixture, `tests/<module>/<sub>.spec.ts`; naya folder ho to `playwright.config.ts` ke `chromium` project `testMatch` mein add.
-5. Chalao, reports check karo, defects `docs/defects/<module>.md` mein.
-6. Sign-off: `docs/signoff/<module> signoff <date>.md` ([template](docs/templates/signoff-report.md)).
+## 7. Naya module add karna (tez tareeqa)
+1. `npm run module:new -- <module> [sub]`: test plan, test case doc, spec, page object, defect log ban jate hain.
+2. App explore karo (ek baar), `docs/test-plans/<module>.md` chhota sa likho, test cases doc bharo (~15-25 cases).
+3. Page object aur `fixtures/test-fixtures.ts` mein add, spec likho (title ka ID doc se match).
+4. `npm run cases:csv`, `npm run cases:check`, `npm run typecheck`. `package.json` mein `test:<module>` script jodo.
+5. Chalao, reports dekho, defects `docs/defects/<module>.md` mein.
+6. `npm run signoff -- <module>` (draft khud banta hai, review karke narrative jodo).
 7. `PLAN.md` tracker, `GUIDELINES.md`, commit aur push.
