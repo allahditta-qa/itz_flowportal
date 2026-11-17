@@ -35,10 +35,14 @@ User Hinglish (Roman Urdu + English) mein baat karta hai; replies usi style mein
 
 ## Reports (kam effort rakhna, user ki preference)
 - Har test ka screenshot report mein aata hai (`screenshot: 'on'`).
-- Online: `npm run report` (playwright-report/).
-- Offline (har sub-module ki alag): `reports/<module>/<submodule> test report.html`, jaise `reports/auth/login test report.html`. Sab ka index `reports/index.html`. Single file, screenshots embedded, double-click se khulti hai, har run ke baad khud banti hai.
-- Har run ke baad report khud banti hai (config reporters). `--reporter=...` flag mat do warna report nahi banti. Offline report browser mein auto-open hoti hai (`OFFLINE_REPORT_OPEN=0` se band; background runs mein band rakho).
-- Reporting par zyada time/effort mat lagao; custom reporter `reporters/offline-report.ts` jaisa hai waisa hi rehne do jab tak kuch toot na jaye.
+- **Har test run ki alag, date-wise report** banti hai, purani kabhi overwrite nahi hoti:
+  - `reports/runs/<YYYY-MM-DD>/<HH-mm-ss>/<module>/<submodule> test report.html` (jaise `.../auth/login test report.html`)
+  - `reports/runs/<date>/<time>/index.html` = us run ka summary
+  - `reports/index.html` = sab runs ki history (date-wise, newest upar) + har module ki latest report
+- Reports single file hain, screenshots embedded, double-click se khulti hain. `npm run reports` history kholta hai.
+- Report **config ke reporter** se banti hai, to `--reporter=...` flag kabhi mat do. Report browser mein auto-open hoti hai (`OFFLINE_REPORT_OPEN=0` se band; background runs mein band rakho).
+- **Manual run (report ke saath):** terminal mein `npm run test:login`, `test:theme`, `test:workspace`, `test:project`, `test:my-work`, `test:auth`, `npm test`, `npm run test:headed`; ya VS Code mein Terminal > Run Task > "Test: ..." (`.vscode/tasks.json`). VS Code Playwright extension ke play button se report banne ki guarantee nahi (wo apna reporter use karta hai), is liye manual run ke liye upar wale commands/tasks use karo.
+- Reporting par zyada time/effort mat lagao; `reporters/offline-report.ts` jaisa hai waisa hi rehne do jab tak kuch toot na jaye.
 
 ## Status (2026-11-16)
 - 22/22 tests pass (setup, auth, workspace, project, my-work). Sab read-only: app live hai, create/delete/ClickUp sync kabhi nahi.

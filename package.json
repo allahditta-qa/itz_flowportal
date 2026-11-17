@@ -7,7 +7,14 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "report": "playwright show-report",
-    "report:offline": "node -e \"require('child_process').exec('start \\\"\\\" reports\\\\offline-report.html')\""
+    "test:auth": "playwright test --project=auth",
+    "test:login": "playwright test tests/auth/login.spec.ts",
+    "test:signout": "playwright test tests/auth/signout.spec.ts",
+    "test:theme": "playwright test tests/theme",
+    "test:workspace": "playwright test tests/workspace",
+    "test:project": "playwright test tests/project",
+    "test:my-work": "playwright test tests/my-work",
+    "reports": "start \"\" reports\\index.html"
   },
   "keywords": [],
   "author": "",

@@ -10,11 +10,12 @@ Test cases ki language **simple English** hoti hai. Chhote sentences, koi mushki
 | Test cases ki document (English) | `docs/test-cases/<module>-<submodule>.md` | `docs/test-cases/auth-login.md` |
 | Automation code | `tests/<module>/<submodule>.spec.ts` | `tests/auth/login.spec.ts` |
 | Page object | `pages/<Name>Page.ts` | `pages/LoginPage.ts` |
-| Report (auto banti hai) | `reports/<module>/<submodule> test report.html` | `reports/auth/login test report.html` |
-| Sab reports ka index | `reports/index.html` | |
+| Report (har run ki alag, auto banti hai) | `reports/runs/<date>/<time>/<module>/<submodule> test report.html` | `reports/runs/2026-11-17/14-48-27/auth/login test report.html` |
+| Is run ka summary | `reports/runs/<date>/<time>/index.html` | |
+| Sab runs ki history (date-wise) + har module ki latest report | `reports/index.html` | |
 
 Ek sub-module = ek doc + ek spec file + ek report.
-Agar module ka sirf ek hi sub-module ho (e.g. theme), to sub-module ka naam module jaisa rakho: `tests/theme/theme.spec.ts`, doc `docs/test-cases/theme.md`, report `reports/theme/theme test report.html`.
+Agar module ka sirf ek hi sub-module ho (e.g. theme), to sub-module ka naam module jaisa rakho: `tests/theme/theme.spec.ts`, doc `docs/test-cases/theme.md`, report `reports/runs/<date>/<time>/theme/theme test report.html`.
 
 ## 2. Test case ID
 
@@ -58,5 +59,5 @@ Har file in sections ke saath, isi order mein:
 - [ ] Page object banaya / update kiya (`pages/`)
 - [ ] `tests/<module>/<submodule>.spec.ts` banaya, IDs doc se match
 - [ ] Module naya ho to `playwright.config.ts` ke `chromium` project `testMatch` mein add kiya
-- [ ] Tests chalaye, report `reports/<module>/<submodule> test report.html` ban gayi
+- [ ] Tests chalaye, report `reports/runs/<date>/<time>/<module>/<submodule> test report.html` ban gayi aur `reports/index.html` mein dikhti hai
 - [ ] `PLAN.md` aur `GUIDELINES.md` update kiye

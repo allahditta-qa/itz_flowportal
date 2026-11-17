@@ -1,6 +1,6 @@
 # Auth - Sign Out Test Cases
 
-**Automation:** `tests/auth/signout.spec.ts`  |  **Report:** `reports/auth/signout test report.html`
+**Automation:** `tests/auth/signout.spec.ts`  |  **Report:** `reports/runs/<date>/<time>/auth/signout test report.html` (history: `reports/index.html`)
 
 ## Overview
 A logged-in user can sign out. After signing out the user goes back to the login page.
