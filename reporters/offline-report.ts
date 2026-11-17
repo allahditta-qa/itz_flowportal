@@ -7,10 +7,16 @@
 // Purani report kabhi overwrite nahi hoti (naya run = nayi file, kyunke naam mein time hai).
 // reports/index.html mein sab reports ki history (date-wise) + har module ki latest report ka link hota hai.
 // Reports bina server/internet ke double-click se khulti hain.
-import type { FullResult, Reporter, TestCase, TestResult } from '@playwright/test/reporter';
+import type { FullConfig, FullResult, Reporter, Suite, TestCase, TestResult } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
+// Test case ki details docs/test-cases/*.md se aati hain (CSV ke liye)
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { buildRows, toCsv } = require('../scripts/export-test-cases.js') as {
+  buildRows: (module: string, sub: string, tests: { id: string; title: string }[]) => string[][];
+  toCsv: (rows: string[][]) => string;
+};
 
 interface Row {
   id: string;
@@ -33,6 +39,7 @@ interface Group {
 interface Entry {
   module: string;
   sub: string;
+  csv?: string; // is run ke test cases ki CSV (reports folder se relative path)
   file: string; // reports folder se relative path (e.g. theme/theme test 17-11-2026_03-05.html)
   ts: string; // ISO time (sorting ke liye)
   date: string; // DD-MM-YYYY
@@ -69,6 +76,8 @@ table{width:100%;border-collapse:collapse;background:var(--card);border:1px soli
 export default class OfflineReporter implements Reporter {
   private groups = new Map<string, Group>();
   private startedAt = new Date();
+  private bases = new Map<string, string>(); // module/sub -> report file ka naam (bina .html)
+  private csvFiles = new Map<string, string>(); // module/sub -> CSV ka relative path
   private reportsDir: string;
   private autoOpen: boolean;
 
@@ -78,8 +87,44 @@ export default class OfflineReporter implements Reporter {
     this.autoOpen = (options.open ?? true) && !process.env.CI && process.env.OFFLINE_REPORT_OPEN !== '0';
   }
 
-  onBegin(): void {
+  // Run shuru hote hi (tests chalne se PEHLE): jo test cases chalne wale hain unki module-wise CSV bana deta hai
+  onBegin(_config: FullConfig, suite: Suite): void {
     this.startedAt = new Date();
+    if (process.argv.includes('--list')) return; // sirf list dekhna hai, CSV nahi banani
+    const d = this.startedAt;
+    const stamp = `${two(d.getDate())}-${two(d.getMonth() + 1)}-${d.getFullYear()}_${two(d.getHours())}-${two(d.getMinutes())}`;
+
+    const planned = new Map<string, { module: string; sub: string; tests: { id: string; title: string }[] }>();
+    for (const t of suite.allTests()) {
+      const rel = path.relative(process.cwd(), t.location.file).split(path.sep);
+      const module = rel[1] ?? 'general';
+      if (module === 'setup') continue;
+      const sub = (rel[2] ?? rel[1] ?? 'tests').replace(/\.spec\.ts$/, '');
+      const key = `${module}/${sub}`;
+      if (!planned.has(key)) planned.set(key, { module, sub, tests: [] });
+      planned.get(key)!.tests.push({ id: t.title.match(/TC_[A-Z0-9_.]+/)?.[0] ?? '', title: t.title });
+    }
+
+    for (const [key, p] of planned) {
+      const dir = path.join(this.reportsDir, p.module);
+      fs.mkdirSync(dir, { recursive: true });
+      // Naam: "<sub> test DD-MM-YYYY_HH-mm". Usi minute mein dobara run ho to seconds jod dete hain (overwrite nahi hota)
+      let base = `${p.sub.replace(/[-_]/g, ' ')} test ${stamp}`;
+      if (fs.existsSync(path.join(dir, `${base}.html`)) || fs.existsSync(path.join(dir, this.csvName(base)))) base += `-${two(d.getSeconds())}`;
+      this.bases.set(key, base);
+      try {
+        fs.writeFileSync(path.join(dir, this.csvName(base)), toCsv(buildRows(p.module, p.sub, p.tests)), 'utf8');
+        this.csvFiles.set(key, `${p.module}/${this.csvName(base)}`);
+        console.log(`Test cases CSV (${p.tests.length} cases): ${path.join(dir, this.csvName(base))}`);
+      } catch (err) {
+        console.log('Test cases CSV could not be created:', (err as Error).message);
+      }
+    }
+  }
+
+  // "login test 17-11-2026_15-20" -> "login test cases 17-11-2026_15-20.csv"
+  private csvName(base: string): string {
+    return `${base.replace(' test ', ' test cases ')}.csv`;
   }
 
   onTestEnd(test: TestCase, result: TestResult): void {
@@ -133,16 +178,14 @@ export default class OfflineReporter implements Reporter {
       const dir = path.join(this.reportsDir, g.module);
       fs.mkdirSync(dir, { recursive: true });
 
-      // Naam: "<sub> test DD-MM-YYYY_HH-mm.html". Usi minute mein dobara run ho to seconds jod dete hain (overwrite nahi hota)
-      const base = `${g.sub.replace(/[-_]/g, ' ')} test ${stamp}`;
-      let name = `${base}.html`;
-      if (fs.existsSync(path.join(dir, name))) name = `${base}-${two(d.getSeconds())}.html`;
+      const name = `${this.bases.get(`${g.module}/${g.sub}`) ?? `${g.sub.replace(/[-_]/g, ' ')} test ${stamp}`}.html`;
       const full = path.join(dir, name);
 
       const e: Entry = {
         module: g.module,
         sub: g.sub,
         file: `${g.module}/${name}`,
+        csv: this.csvFiles.get(`${g.module}/${g.sub}`),
         ts: d.toISOString(),
         date,
         time: `${two(d.getHours())}:${two(d.getMinutes())}`,
@@ -218,6 +261,7 @@ ${cards}
           module,
           sub: sub.replace(/ /g, '-'),
           file,
+          csv: fs.existsSync(path.join(dir, this.csvName(name.replace(/\.html$/, '')))) ? `${module}/${this.csvName(name.replace(/\.html$/, ''))}` : undefined,
           ts: `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss ?? '00'}`,
           date: `${dd}-${mm}-${yyyy}`,
           time: `${hh}:${mi}`,
@@ -256,11 +300,11 @@ ${cards}
         .map(
           (e) => `<tr><td>${esc(pretty(e.module))}</td><td><a href="${esc(encodeURI(e.file))}">${esc(pretty(e.sub))}</a></td><td>${e.total}</td>
 <td class="pass-t">${e.passed}</td><td class="${e.failed ? 'fail-t' : ''}">${e.failed}</td><td class="skip-t">${e.skipped}</td>
-<td class="${e.failed ? 'fail-t' : 'pass-t'}">${e.failed ? 'Failed' : 'Passed'}</td></tr>`,
+<td class="${e.failed ? 'fail-t' : 'pass-t'}">${e.failed ? 'Failed' : 'Passed'}</td><td>${e.csv ? `<a href="${esc(encodeURI(e.csv))}">CSV</a>` : ''}</td></tr>`,
         )
         .join('\n');
       body += `<h2>${esc(when.replace(' ', '  •  '))} <span class="meta">&nbsp;total ${total} · <span class="pass-t">${passed} pass</span> · <span class="${failed ? 'fail-t' : ''}">${failed} fail</span> · <span class="skip-t">${skipped} skip</span></span></h2>
-<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>`;
+<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th><th>Test cases</th></tr></thead><tbody>${rows}</tbody></table>`;
     }
 
     const file = path.join(this.reportsDir, 'index.html');

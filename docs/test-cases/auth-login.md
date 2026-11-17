@@ -42,10 +42,10 @@ The login page lets a user sign in with an email and a password. After a success
 | TC_LOGIN_14 | Click Sign in with email "no.such.user.qa@theitzon.com" and empty password | High | User is logged out | 1. Type only an email. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
 | TC_LOGIN_15 | Click Sign in with empty email and password "WrongPass#123" | High | User is logged out | 1. Type only a password. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
 | TC_LOGIN_16.1 | Click Sign in with invalid email "plainaddress" and password "Secret123" | Medium | User is logged out | 1. Type `plainaddress` as the email and any password. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
-| TC_LOGIN_16.2 | Click Sign in with invalid email "@theitzon.com" and password "Secret123" | Medium | User is logged out | Same steps with `@theitzon.com`. | Same as above. |
-| TC_LOGIN_16.3 | Click Sign in with invalid email "user@" and password "Secret123" | Medium | User is logged out | Same steps with `user@`. | Same as above. |
-| TC_LOGIN_16.4 | Click Sign in with invalid email "user name@theitzon.com" and password "Secret123" | Medium | User is logged out | Same steps with `user name@theitzon.com`. | Same as above. |
-| TC_LOGIN_16.5 | Click Sign in with invalid email "user@@theitzon.com" and password "Secret123" | Medium | User is logged out | Same steps with `user@@theitzon.com`. | Same as above. |
+| TC_LOGIN_16.2 | Click Sign in with invalid email "@theitzon.com" and password "Secret123" | Medium | User is logged out | 1. Type `@theitzon.com` as the email and `Secret123` as the password. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
+| TC_LOGIN_16.3 | Click Sign in with invalid email "user@" and password "Secret123" | Medium | User is logged out | 1. Type `user@` as the email and `Secret123` as the password. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
+| TC_LOGIN_16.4 | Click Sign in with invalid email "user name@theitzon.com" and password "Secret123" | Medium | User is logged out | 1. Type `user name@theitzon.com` as the email and `Secret123` as the password. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
+| TC_LOGIN_16.5 | Click Sign in with invalid email "user@@theitzon.com" and password "Secret123" | Medium | User is logged out | 1. Type `user@@theitzon.com` as the email and `Secret123` as the password. 2. Click Sign in. | The user stays on the login page. No login request is sent. |
 | TC_LOGIN_17 | Click Sign in with spaces-only email and password "Secret123" | Medium | User is logged out | 1. Type spaces as the email. 2. Type any password. 3. Click Sign in. | The user stays on the login page. No login request is sent. |
 
 ## D. Negative cases: wrong details (server rejects)

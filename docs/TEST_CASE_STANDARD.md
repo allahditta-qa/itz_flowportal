@@ -11,6 +11,7 @@ Test cases ki language **simple English** hoti hai. Chhote sentences, koi mushki
 | Automation code | `tests/<module>/<submodule>.spec.ts` | `tests/auth/login.spec.ts` |
 | Page object | `pages/<Name>Page.ts` | `pages/LoginPage.ts` |
 | Report (har run ki nayi file, auto banti hai) | `reports/<module>/<submodule> test <DD-MM-YYYY>_<HH-mm>.html` | `reports/auth/login test 17-11-2026_03-05.html` |
+| Test cases ki CSV (run se pehle, sirf jo chalne wale hain) | `reports/<module>/<submodule> test cases <DD-MM-YYYY>_<HH-mm>.csv` | `reports/auth/login test cases 17-11-2026_03-05.csv` |
 | Sab reports ka index (history + latest) | `reports/index.html` | |
 
 Ek sub-module = ek doc + ek spec file + ek report.
@@ -58,5 +59,6 @@ Har file in sections ke saath, isi order mein:
 - [ ] Page object banaya / update kiya (`pages/`)
 - [ ] `tests/<module>/<submodule>.spec.ts` banaya, IDs doc se match
 - [ ] Module naya ho to `playwright.config.ts` ke `chromium` project `testMatch` mein add kiya
+- [ ] Doc ke har test case ka ID spec ke test title mein hai (CSV doc se banti hai, warna "Not documented yet" likha aata hai)
 - [ ] Tests chalaye, report `reports/<module>/<submodule> test <DD-MM-YYYY>_<HH-mm>.html` ban gayi aur `reports/index.html` mein dikhti hai
 - [ ] `PLAN.md` aur `GUIDELINES.md` update kiye
