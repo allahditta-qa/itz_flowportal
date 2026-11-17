@@ -10,6 +10,7 @@ Format: har entry mein **Date | Area | Learning | Kya karna hai**. Naye entries 
 
 | Date | Area | Learning | Action / Rule |
 |------|------|----------|---------------|
+| 2026-11-17 | Reports index | `reports/index.html`: upar date+time (newest pehle), neeche module-wise; history `history.json` + report files se rebuild hoti hai. Sorting date/time se (ts format mix ho sakta hai) | Index kabhi hand-edit nahi, reporter khud banata hai |
 | 2026-11-17 | Reports | User ne purana folder structure hi rakha (`reports/<module>/`); har run ki nayi file, naam mein date-time: `<sub> test DD-MM-YYYY_HH-mm.html`. `reports/runs/...` structure user ne mana kiya. Manual run ke liye npm scripts (`test:login`...) aur VS Code tasks | VS Code extension ke play button se report ki guarantee nahi (uska apna reporter), is liye scripts/tasks use karo |
 | 2026-11-17 | Theme | Theme buttons Light/Dark/System: selected button ka `aria-pressed=true`; `html[data-theme]` light/dark/system; background light `rgb(246, 247, 250)`, dark `rgb(10, 12, 16)`; choice `localStorage` key `itzflow-theme` mein save; reload, login se app aur dusre pages par bhi rehti hai; pehli baar default Light; System computer theme ko live follow karta hai | `pages/ThemeSwitcher.ts` mein locators/checks. Tests: `tests/theme/theme.spec.ts` |
 | 2026-11-17 | Locators | App mein "Lighten Image AI Photo" jaisa button bhi `name: 'Light'` se match hota hai | Theme buttons hamesha `getByRole('button', { name, exact: true })` se |

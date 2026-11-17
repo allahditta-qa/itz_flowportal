@@ -156,6 +156,7 @@ export default class OfflineReporter implements Reporter {
       written.push(full);
     }
 
+    history = this.syncWithFiles(history);
     fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
     const indexFile = this.writeIndex(history);
 
@@ -196,31 +197,71 @@ ${cards}
 </main></body></html>`;
   }
 
-  // reports/index.html: har module ki latest report + date-wise history (newest upar)
-  private writeIndex(history: Entry[]): string {
-    const sorted = [...history].sort((a, b) => b.ts.localeCompare(a.ts));
-    const link = (e: Entry, text: string) => `<a href="${esc(encodeURI(e.file))}">${esc(text)}</a>`;
-    const counts = (e: Entry) => `<td>${e.total}</td><td class="pass-t">${e.passed}</td><td class="${e.failed ? 'fail-t' : ''}">${e.failed}</td><td class="skip-t">${e.skipped}</td>
-<td class="${e.failed ? 'fail-t' : 'pass-t'}">${e.failed ? 'Failed' : 'Passed'}</td>`;
-
-    const latest = new Map<string, Entry>();
-    for (const e of sorted) if (!latest.has(`${e.module}/${e.sub}`)) latest.set(`${e.module}/${e.sub}`, e);
-    const latestRows = [...latest.values()]
-      .sort((a, b) => `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`))
-      .map((e) => `<tr><td>${esc(pretty(e.module))}</td><td>${link(e, pretty(e.sub))}</td>${counts(e)}<td class="meta">${esc(e.date)} ${esc(e.time)}</td></tr>`)
-      .join('\n');
-
-    let hist = '';
-    let lastDate = '';
-    for (const e of sorted) {
-      if (e.date !== lastDate) {
-        if (lastDate) hist += '</tbody></table>';
-        hist += `<h2>${esc(e.date)}</h2><table><thead><tr><th>Time</th><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th></tr></thead><tbody>`;
-        lastDate = e.date;
+  // history.json aur reports/<module>/*.html files ko match karta hai:
+  //  - jo report file maujood hai par history mein nahi (history.json delete ho gayi ho), use wapas jod deta hai
+  //  - jo entry ki file delete ho chuki hai, use hata deta hai (index mein dead link na rahe)
+  private syncWithFiles(history: Entry[]): Entry[] {
+    const kept = history.filter((e) => fs.existsSync(path.join(this.reportsDir, e.file)));
+    const known = new Set(kept.map((e) => e.file));
+    const nameRe = /^(.*) test (\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})(?:-(\d{2}))?\.html$/;
+    const sumRe = /<div class="sum"><div><b>(\d+)<\/b>total<\/div><div><b class="pass-t">(\d+)<\/b>passed<\/div><div><b class="fail-t">(\d+)<\/b>failed<\/div><div><b class="skip-t">(\d+)<\/b>skipped/;
+    for (const module of fs.existsSync(this.reportsDir) ? fs.readdirSync(this.reportsDir) : []) {
+      const dir = path.join(this.reportsDir, module);
+      if (!fs.statSync(dir).isDirectory()) continue;
+      for (const name of fs.readdirSync(dir)) {
+        const file = `${module}/${name}`;
+        const m = name.match(nameRe);
+        if (!m || known.has(file)) continue;
+        const [, sub, dd, mm, yyyy, hh, mi, ss] = m;
+        const counts = fs.readFileSync(path.join(dir, name), 'utf8').match(sumRe);
+        kept.push({
+          module,
+          sub: sub.replace(/ /g, '-'),
+          file,
+          ts: `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss ?? '00'}`,
+          date: `${dd}-${mm}-${yyyy}`,
+          time: `${hh}:${mi}`,
+          total: Number(counts?.[1] ?? 0),
+          passed: Number(counts?.[2] ?? 0),
+          failed: Number(counts?.[3] ?? 0),
+          skipped: Number(counts?.[4] ?? 0),
+        });
       }
-      hist += `<tr><td>${esc(e.time)}</td><td>${esc(pretty(e.module))}</td><td>${link(e, pretty(e.sub))}</td>${counts(e)}</tr>`;
     }
-    if (lastDate) hist += '</tbody></table>';
+    return kept;
+  }
+
+  // reports/index.html: sab se upar date + time (newest pehle), har date-time ke neeche module-wise reports
+  private writeIndex(history: Entry[]): string {
+    // Sorting date (DD-MM-YYYY) aur time (HH:mm) se: nayi run sab se upar. (ts ka format purani entries mein alag ho sakta hai)
+    const sortKey = (e: Entry) => `${e.date.split('-').reverse().join('')}${e.time}`;
+    const sorted = [...history].sort((a, b) => sortKey(b).localeCompare(sortKey(a)) || b.ts.localeCompare(a.ts));
+
+    // Date-time (minute) ke hisab se group
+    const runs = new Map<string, Entry[]>();
+    for (const e of sorted) {
+      const key = `${e.date} ${e.time}`;
+      if (!runs.has(key)) runs.set(key, []);
+      runs.get(key)!.push(e);
+    }
+
+    let body = '';
+    for (const [when, list] of runs) {
+      const total = list.reduce((n, e) => n + e.total, 0);
+      const passed = list.reduce((n, e) => n + e.passed, 0);
+      const failed = list.reduce((n, e) => n + e.failed, 0);
+      const skipped = list.reduce((n, e) => n + e.skipped, 0);
+      const rows = list
+        .sort((a, b) => `${a.module}/${a.sub}`.localeCompare(`${b.module}/${b.sub}`))
+        .map(
+          (e) => `<tr><td>${esc(pretty(e.module))}</td><td><a href="${esc(encodeURI(e.file))}">${esc(pretty(e.sub))}</a></td><td>${e.total}</td>
+<td class="pass-t">${e.passed}</td><td class="${e.failed ? 'fail-t' : ''}">${e.failed}</td><td class="skip-t">${e.skipped}</td>
+<td class="${e.failed ? 'fail-t' : 'pass-t'}">${e.failed ? 'Failed' : 'Passed'}</td></tr>`,
+        )
+        .join('\n');
+      body += `<h2>${esc(when.replace(' ', '  •  '))} <span class="meta">&nbsp;total ${total} · <span class="pass-t">${passed} pass</span> · <span class="${failed ? 'fail-t' : ''}">${failed} fail</span> · <span class="skip-t">${skipped} skip</span></span></h2>
+<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
 
     const file = path.join(this.reportsDir, 'index.html');
     fs.mkdirSync(this.reportsDir, { recursive: true });
@@ -228,10 +269,8 @@ ${cards}
       file,
       `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ITZ Flow - Test Reports</title><style>${STYLE}</style></head><body><main>
-<h1>ITZ Flow - Test Reports</h1><div class="meta">Har run ki alag report (file ke naam mein date aur time). Purani reports kabhi overwrite nahi hoti.</div>
-<h2>Latest report of each module</h2>
-<table><thead><tr><th>Module</th><th>Sub-module</th><th>Total</th><th>Pass</th><th>Fail</th><th>Skip</th><th>Result</th><th>Run</th></tr></thead><tbody>${latestRows}</tbody></table>
-<h2 style="margin-top:36px">History (newest first)</h2>${hist}
+<h1>ITZ Flow - Test Reports</h1><div class="meta">History: sab se nayi run upar. Har date-time ke neeche module-wise reports. Purani entries kabhi overwrite ya delete nahi hoti.</div>
+${body}
 </main></body></html>`,
       'utf8',
     );
